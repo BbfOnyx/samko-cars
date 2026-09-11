@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}{{ car.year }} {{ car.make }} {{ car.model }} — {{ car.formatted_price }} | Samko Cars{% endblock %}
+{% block meta_description %}{{ car.year }} {{ car.make }} {{ car.model }} for sale at {{ car.formatted_price }}. {{ car.mileage|intcomma }}km, {{ car.get_transmission_display }}, {{ car.get_condition_display }}. Located in {{ car.location }}.{% endblock %}
+{% block og_title %}{{ car.year }} {{ car.make }} {{ car.model }} — {{ car.formatted_price }}{% endblock %}
+{% block og_description %}{{ car.description|truncatewords:30 }}{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header" style="padding:2rem 0">
+  <div class="container" style="position:relative;z-index:2">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="{% url 'core:home' %}">Home</a>
+      <span aria-hidden="true">›</span>
+      <a href="{% url 'cars:list' %}">Cars</a>
+      <span aria-hidden="true">›</span>
+      <span style="color:rgba(255,255,255,0.7)">{{ car.make }} {{ car.model }}</span>
+    </nav>
+  </div>
+</div>
+
+<section class="section-sm">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr;gap:2rem">
+
+      <!-- ── LEFT: Gallery & Details ── -->
+      <div>
+
+        <!-- Image Gallery -->
+        <div style="margin-bottom:2rem">
+          <div class="gallery-main">
+            {% with car.get_cover_image as cover %}
+            {% if cover and cover.image.name %}
+              <img id="gallery-main-img" src="{{ cover.image.url }}" alt="{{ car.year }} {{ car.make }} {{ car.model }} - Main Photo" onerror="this.onerror=null;this.src='/static/images/car-fallback.svg'">
+            {% else %}
+              <img id="gallery-main-img" src="{% static 'images/car-fallback.svg' %}" alt="{{ car.year }} {{ car.make }} {{ car.model }} - Image unavailable">
+            {% endif %}
+            {% endwith %}
+          </div>
+
+          {% if images.count > 1 %}
+          <div class="gallery-thumbs" role="list" aria-label="Car photo gallery">
+            {% for img in images %}
+            <button class="gallery-thumb {% if forloop.first %}active{% endif %}"
+                    data-src="{{ img.image.url }}"
+                    data-alt="{{ car.year }} {{ car.make }} {{ car.model }} - Photo {{ forloop.counter }}"
+                    role="listitem"
+                    aria-label="View photo {{ forloop.counter }}"
+                    type="button">
+              <img src="{{ img.image.url }}" alt="Thumbnail {{ forloop.counter }}" loading="lazy" onerror="this.onerror=null;this.src='/static/images/car-fallback.svg'">
+            </button>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Title & Status -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+          <div>
+            <h1 style="font-size:clamp(1.5rem,3vw,2.25rem);margin-bottom:0.5rem">{{ car.year }} {{ car.make }} {{ car.model }}</h1>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">
+              {% if car.status == 'available' %}<span class="badge badge-success">● AVAILABLE</span>
+              {% elif car.status == 'reserved' %}<span class="badge badge-warning">● RESERVED</span>
+              {% else %}<span class="badge badge-danger">● SOLD</span>{% endif %}
+              {% if car.is_featured %}<span class="badge badge-featured">⭐ Featured</span>{% endif %}
+              <span class="badge badge-info">{{ car.get_condition_display }}</span>
+              <span class="badge badge-primary">{{ car.body_type|title }}</span>
+            </div>
+          </div>
+          <div class="sticky-panel" style="position:static;padding:1rem 1.5rem;border-radius:var(--radius-lg)">
+            <div class="price-label">Asking Price</div>
+            <div class="price">{{ car.formatted_price }}</div>
+          </div>
+        </div>
+
+        <!-- Specs Grid -->
+        <div style="margin-bottom:2rem">
+          <h2 style="font-size:1.1rem;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid var(--border-color)">Vehicle Specifications</h2>
+          <div class="spec-grid">
+            <div class="spec-item">
+              <div class="spec-label">Year</div>
+              <div class="spec-value">{{ car.year }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Make</div>
+              <div class="spec-value">{{ car.make }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Model</div>
+              <div class="spec-value">{{ car.model }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Mileage</div>
+              <div class="spec-value">{{ car.formatted_mileage }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Transmission</div>
+              <div class="spec-value">{{ car.get_transmission_display }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Fuel Type</div>
+              <div class="spec-value">{{ car.get_fuel_type_display }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Engine</div>
+              <div class="spec-value">{{ car.engine }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Body Type</div>
+              <div class="spec-value">{{ car.get_body_type_display }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Condition</div>
+              <div class="spec-value">{{ car.get_condition_display }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Exterior Color</div>
+              <div class="spec-value">{{ car.exterior_color }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Interior</div>
+              <div class="spec-value">{{ car.interior_color }}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">Location</div>
+              <div class="spec-value">{{ car.location }}</div>
+            </div>
+            {% if car.vin %}
+            <div class="spec-item" style="grid-column:1/-1">
+              <div class="spec-label">VIN / Chassis No</div>
+              <div class="spec-value" style="font-family:monospace">{{ car.vin }}</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Description -->
+        {% if car.description %}
+        <div style="margin-bottom:2rem">
+          <h2 style="font-size:1.1rem;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid var(--border-color)">About This Vehicle</h2>
+          <p style="color:var(--text-secondary);line-height:1.8">{{ car.description|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Features -->
+        {% if features %}
+        <div style="margin-bottom:2rem">
+          <h2 style="font-size:1.1rem;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid var(--border-color)">Features & Equipment</h2>
+          <div class="features-list">
+            {% for feature in features %}
+            <span class="feature-tag">✓ {{ feature.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+          <a href="{{ whatsapp_link }}" target="_blank" rel="noopener"
+             class="btn btn-whatsapp btn-lg"
+             aria-label="Chat on WhatsApp about this {{ car.year }} {{ car.make }} {{ car.model }}">
+            💬 WhatsApp About This Car
+          </a>
+
+          {% if car.status == 'available' %}
+          <button type="button" class="btn btn-primary btn-lg" data-open-modal="purchase-modal">
+            🛒 Request Purchase / Inspection
+          </button>
+          {% endif %}
+
+          <button type="button" class="btn btn-outline btn-lg" data-open-modal="enquiry-modal">
+            ✉️ Send Enquiry
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Cars -->
+    {% if related_cars %}
+    <div style="margin-top:3rem;padding-top:2rem;border-top:2px solid var(--border-color)">
+      <h2 style="margin-bottom:1.5rem">You May Also Like</h2>
+      <div class="grid grid-4" style="gap:1.5rem">
+        {% for related in related_cars %}
+        {% include 'website/_car_card.html' with car=related %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════
+     ENQUIRY MODAL
+════════════════════════════════════════════════════ -->
+<div id="enquiry-modal" class="modal-overlay" role="dialog" aria-labelledby="enquiry-modal-title" aria-modal="true">
+  <div class="modal">
+    <button class="modal-close" data-close-modal="enquiry-modal" aria-label="Close enquiry form">✕</button>
+    <h2 id="enquiry-modal-title" style="margin-bottom:0.25rem">Send an Enquiry</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1.5rem">Re: {{ car.year }} {{ car.make }} {{ car.model }}</p>
+
+    <form action="{% url 'enquiries:submit' %}" method="POST" data-enquiry-form>
+      {% csrf_token %}
+      <input type="hidden" name="car_id" value="{{ car.id }}">
+
+      <div class="form-group">
+        <label class="form-label" for="enq-name">Full Name *</label>
+        <input id="enq-name" type="text" name="name" class="form-control" placeholder="Your name" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="enq-phone">Phone Number *</label>
+        <input id="enq-phone" type="tel" name="phone" class="form-control" placeholder="+234 803 000 0000" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="enq-email">Email Address</label>
+        <input id="enq-email" type="email" name="email" class="form-control" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="enq-message">Message *</label>
+        <textarea id="enq-message" name="message" class="form-control" placeholder="Tell us what you'd like to know about this vehicle..." required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Send Enquiry</button>
+    </form>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PURCHASE REQUEST MODAL
+════════════════════════════════════════════════════ -->
+<div id="purchase-modal" class="modal-overlay" role="dialog" aria-labelledby="purchase-modal-title" aria-modal="true">
+  <div class="modal">
+    <button class="modal-close" data-close-modal="purchase-modal" aria-label="Close purchase request form">✕</button>
+    <h2 id="purchase-modal-title" style="margin-bottom:0.25rem">Purchase / Inspection Request</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:0.5rem">{{ car.year }} {{ car.make }} {{ car.model }}</p>
+    <div class="badge badge-primary" style="margin-bottom:1.5rem">{{ car.formatted_price }}</div>
+
+    <div class="alert alert-info" style="margin-bottom:1rem">
+      ℹ️ Submitting this form does <strong>not</strong> confirm a completed purchase. Our team will contact you immediately to arrange inspection and finalise the transaction.
+    </div>
+
+    <form action="{% url 'purchases:request' %}" method="POST" data-purchase-form>
+      {% csrf_token %}
+      <input type="hidden" name="car_id" value="{{ car.id }}">
+
+      <div class="form-group">
+        <label class="form-label" for="pur-name">Full Name *</label>
+        <input id="pur-name" type="text" name="customer_name" class="form-control" placeholder="Your full name" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="pur-phone">Phone Number *</label>
+        <input id="pur-phone" type="tel" name="customer_phone" class="form-control" placeholder="+234 803 000 0000" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="pur-email">Email Address</label>
+        <input id="pur-email" type="email" name="customer_email" class="form-control" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="pur-date">Preferred Inspection Date</label>
+        <input id="pur-date" type="date" name="inspection_date" class="form-control">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="pur-message">Additional Notes</label>
+        <textarea id="pur-message" name="message" class="form-control" placeholder="Any special requirements, trade-in info, or questions..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">🚗 Submit Purchase Request</button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

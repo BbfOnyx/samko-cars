@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Samko Cars — Call, WhatsApp, or Email Us{% endblock %}
+{% block meta_description %}Contact Samko Cars for all vehicle inquiries. Call, WhatsApp, or email us. Visit our showroom in Lagos. We respond immediately.{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:2">
+    <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:0.75rem">
+      <a href="{% url 'core:home' %}">Home</a>
+      <span aria-hidden="true">›</span>
+      <span style="color:rgba(255,255,255,0.7)">Contact</span>
+    </nav>
+    <h1>Contact Samko Cars</h1>
+    <p>Our team responds within minutes — we're here to help you find your perfect vehicle</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr;gap:3rem">
+
+      <!-- ── Contact Form ── -->
+      <div>
+        <h2 style="margin-bottom:0.5rem">Send Us a Message</h2>
+        <p style="color:var(--text-secondary);margin-bottom:2rem">Fill out the form below and a member of our sales team will respond to you promptly.</p>
+
+        <form action="{% url 'enquiries:submit' %}" method="POST" data-enquiry-form
+              style="background:var(--card-bg);border-radius:var(--card-radius);border:1px solid var(--border-color-light);padding:2rem">
+          {% csrf_token %}
+
+          <div style="display:grid;grid-template-columns:1fr;gap:1rem">
+            <div class="form-group">
+              <label class="form-label" for="contact-name">Full Name *</label>
+              <input id="contact-name" type="text" name="name" class="form-control" placeholder="Your full name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="contact-phone">Phone Number *</label>
+              <input id="contact-phone" type="tel" name="phone" class="form-control" placeholder="+234 803 000 0000" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="contact-email">Email Address</label>
+              <input id="contact-email" type="email" name="email" class="form-control" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="contact-message">How can we help? *</label>
+              <textarea id="contact-message" name="message" class="form-control" rows="5"
+                        placeholder="Tell us what you're looking for, any specific vehicle, budget, or questions..." required></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top:1rem">
+            Send Message
+          </button>
+        </form>
+
+        <!-- Quick WhatsApp -->
+        {% if site_settings %}
+        <div style="text-align:center;margin-top:1.5rem">
+          <p style="color:var(--text-muted);margin-bottom:0.75rem;font-size:0.9rem">Or reach us instantly via</p>
+          <a href="https://wa.me/{{ site_settings.whatsapp_number }}" target="_blank" rel="noopener"
+             class="btn btn-whatsapp btn-lg" style="display:inline-flex">
+            💬 WhatsApp Us Now
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- ── Contact Info ── -->
+      <div>
+        <h2 style="margin-bottom:1.5rem">Get in Touch</h2>
+
+        <div style="display:flex;flex-direction:column;gap:1rem;margin-bottom:2rem">
+          {% if site_settings %}
+          <div class="contact-info-card">
+            <div class="contact-icon">📞</div>
+            <div>
+              <h4 style="margin-bottom:0.25rem">Phone</h4>
+              <a href="tel:{{ site_settings.phone }}" style="color:var(--text-secondary);font-size:0.95rem">{{ site_settings.phone }}</a>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <div class="contact-icon">💬</div>
+            <div>
+              <h4 style="margin-bottom:0.25rem">WhatsApp</h4>
+              <a href="https://wa.me/{{ site_settings.whatsapp_number }}" target="_blank" rel="noopener" style="color:var(--color-success);font-size:0.95rem">
+                Chat with us on WhatsApp
+              </a>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <div class="contact-icon">✉️</div>
+            <div>
+              <h4 style="margin-bottom:0.25rem">Email</h4>
+              <a href="mailto:{{ site_settings.email }}" style="color:var(--text-secondary);font-size:0.95rem">{{ site_settings.email }}</a>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <div class="contact-icon">📍</div>
+            <div>
+              <h4 style="margin-bottom:0.25rem">Address</h4>
+              <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.5">{{ site_settings.address }}</p>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <div class="contact-icon">⏰</div>
+            <div>
+              <h4 style="margin-bottom:0.25rem">Business Hours</h4>
+              <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">{{ site_settings.opening_hours }}</p>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Social Media -->
+        {% if social_links %}
+        <div>
+          <h3 style="margin-bottom:1rem;font-size:1rem">Follow Us</h3>
+          <div class="social-links" style="flex-wrap:wrap">
+            {% for social in social_links %}
+            <a href="{{ social.url }}" target="_blank" rel="noopener noreferrer"
+               class="social-link" aria-label="{{ social.platform_name|default:social.get_platform_display }}"
+               style="background:var(--bg-surface-2);border-color:var(--border-color);color:var(--text-primary)">
+              {% if social.platform == 'instagram' %}📷
+              {% elif social.platform == 'facebook' %}👥
+              {% elif social.platform == 'tiktok' %}🎵
+              {% elif social.platform == 'twitter' %}𝕏
+              {% elif social.platform == 'youtube' %}▶
+              {% elif social.platform == 'linkedin' %}💼
+              {% elif social.platform == 'whatsapp' %}💬
+              {% else %}🔗{% endif %}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

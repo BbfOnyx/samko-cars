@@ -1,0 +1,79 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block page_title %}Customer Testimonials{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+  
+  <!-- Current Testimonials List -->
+  <div class="admin-card">
+    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem">Customer Reviews ({{ testimonials.count }})</h3>
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      {% for test in testimonials %}
+      <div style="padding:1rem;background:var(--bg-surface-2);border-radius:var(--radius-md);border-left:4px solid var(--color-primary)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+          <div>
+            <div style="font-weight:700">{{ test.name }}</div>
+            <div style="font-size:0.8rem;color:var(--text-muted)">{{ test.location }}{% if test.vehicle_purchased %} • Bought: {{ test.vehicle_purchased }}{% endif %}</div>
+          </div>
+          <a href="{% url 'admin_panel:testimonial_delete' test.id %}" onclick="return confirm('Delete this review?')" class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:0.75rem">
+            Delete
+          </a>
+        </div>
+        <div style="color:#f59e0b;margin-bottom:0.5rem">
+          {% for i in "12345"|make_list %}
+            {% if forloop.counter <= test.rating %}★{% else %}☆{% endif %}
+          {% endfor %}
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-secondary);font-style:italic">"{{ test.comment }}"</p>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+        No customer reviews added yet. Add one using the form on the right.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Add New Testimonial Form -->
+  <div class="admin-card">
+    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem">➕ Add Customer Testimonial</h3>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label class="form-label" for="name">Customer Name *</label>
+        <input type="text" id="name" name="name" class="form-input" placeholder="e.g. Chief Emeka Okafor" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label class="form-label" for="location">Location / City *</label>
+        <input type="text" id="location" name="location" class="form-input" placeholder="e.g. Lekki, Lagos" value="Lagos, Nigeria" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label class="form-label" for="vehicle_purchased">Car Purchased (Optional)</label>
+        <input type="text" id="vehicle_purchased" name="vehicle_purchased" class="form-input" placeholder="e.g. 2021 Lexus RX 350">
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label class="form-label" for="rating">Rating (Stars)</label>
+        <select id="rating" name="rating" class="form-select">
+          <option value="5" selected>★★★★★ (5 Stars)</option>
+          <option value="4">★★★★☆ (4 Stars)</option>
+          <option value="3">★★★☆☆ (3 Stars)</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.5rem">
+        <label class="form-label" for="comment">Customer Review / Testimonial *</label>
+        <textarea id="comment" name="comment" class="form-textarea" rows="4" placeholder="Write the customer's feedback here..." required></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%">Add Testimonial</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block page_title %}Delete Vehicle{% endblock %}
+
+{% block content %}
+<div style="max-width:560px;margin:2rem auto">
+  <div class="delete-confirm-card">
+    <div style="font-size:3rem;margin-bottom:1rem">⚠️</div>
+    <h2 style="margin-bottom:0.75rem;color:var(--color-danger)">Confirm Vehicle Deletion</h2>
+    <p style="color:var(--text-secondary);margin-bottom:1.5rem">
+      You are about to permanently delete:
+    </p>
+
+    <div style="background:var(--bg-surface-2);border-radius:var(--radius-md);padding:1.25rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:center">
+      {% with car.get_cover_image as img %}
+      {% if img %}
+        <img src="{{ img.image.url }}" alt="{{ car }}" style="width:80px;height:60px;object-fit:cover;border-radius:var(--radius-sm)" onerror="this.onerror=null;this.src='/static/images/car-fallback.svg'">
+      {% else %}
+        <div style="width:80px;height:60px;background:var(--bg-surface-3);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:2rem">🚗</div>
+      {% endif %}
+      {% endwith %}
+      <div>
+        <div style="font-weight:700;font-size:1rem">{{ car }}</div>
+        <div style="color:var(--color-primary);font-weight:700">{{ car.formatted_price }}</div>
+        <div style="color:var(--text-muted);font-size:0.85rem">{{ car.location }}</div>
+      </div>
+    </div>
+
+    <div class="alert alert-error" style="margin-bottom:1.5rem">
+      ❌ This action is <strong>permanent and cannot be undone</strong>. All vehicle data and images will be deleted.
+    </div>
+
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-lg">🗑️ Yes, Delete Permanently</button>
+      </form>
+      <a href="{% url 'admin_panel:car_list' %}" class="btn btn-outline btn-lg">Cancel — Keep Vehicle</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

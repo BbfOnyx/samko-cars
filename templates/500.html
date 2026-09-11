@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Server Error (500) — Samko Cars{% endblock %}
+{% block meta_description %}An unexpected error occurred. Please try again or contact Samko Cars support.{% endblock %}
+
+{% block content %}
+<div class="page-header" style="padding:2.5rem 0">
+  <div class="container" style="position:relative;z-index:2;text-align:center">
+    <h1 style="font-size:clamp(2rem,4vw,3.5rem);margin-bottom:0.5rem">500 — Temporary Server Error</h1>
+    <p style="color:rgba(255,255,255,0.8);max-width:500px;margin:0 auto">We are experiencing a temporary technical glitch. Our engineers have been notified.</p>
+  </div>
+</div>
+
+<section class="section" style="padding:4rem 0;text-align:center">
+  <div class="container" style="max-width:600px">
+    <div style="font-size:5rem;margin-bottom:1.5rem">⚙️</div>
+    <h2 style="font-size:1.75rem;margin-bottom:1rem">Don't worry, our team is on it!</h2>
+    <p style="color:var(--text-secondary);margin-bottom:2rem;line-height:1.6">
+      You can refresh the page, return to our homepage, or reach us directly on WhatsApp or phone for any immediate vehicle inquiries.
+    </p>
+
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a href="{% url 'core:home' %}" class="btn btn-primary btn-lg">Return to Homepage</a>
+      <a href="{% url 'cars:list' %}" class="btn btn-outline btn-lg">Browse Cars</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

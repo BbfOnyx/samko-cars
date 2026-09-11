@@ -1,0 +1,78 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — Samko Cars</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+  <script>(function(){var t=localStorage.getItem('samko-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <meta name="robots" content="noindex, nofollow">
+</head>
+<body>
+
+<div class="admin-login-page">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(212,160,23,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(212,160,23,0.05) 1px,transparent 1px);background-size:60px 60px;pointer-events:none"></div>
+
+  <div class="admin-login-card">
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:2rem">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--color-primary),var(--color-primary-dark));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:#1a1a1a;margin:0 auto 1rem;box-shadow:0 8px 24px rgba(212,160,23,0.4)">S</div>
+      <h1 style="font-size:1.5rem;margin-bottom:0.25rem">Samko Cars</h1>
+      <p style="color:var(--text-muted);font-size:0.875rem">Administrator Login — Private Access Only</p>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}" style="margin-bottom:1rem">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Login Form -->
+    <form method="POST" action="{% url 'admin_panel:login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label" for="username">Username or Email</label>
+        <input id="username" type="text" name="username" class="form-control"
+               placeholder="Enter your username or email"
+               autocomplete="username" required autofocus>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.5rem">
+        <label class="form-label" for="password">Password</label>
+        <input id="password" type="password" name="password" class="form-control"
+               placeholder="Enter your password"
+               autocomplete="current-password" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">
+        🔐 Sign In to Dashboard
+      </button>
+    </form>
+
+    <div style="text-align:center;margin-top:1.5rem">
+      <a href="{% url 'core:home' %}" style="color:var(--text-muted);font-size:0.8rem">← Return to Samko Cars Website</a>
+    </div>
+
+    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border-color);text-align:center">
+      <p style="font-size:0.75rem;color:var(--text-muted)">
+        🔒 This page is for authorised dealership administrators only.<br>
+        Unauthorized access attempts are logged.
+      </p>
+    </div>
+  </div>
+
+  <div style="position:absolute;bottom:1rem;right:1rem">
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
+  </div>
+</div>
+
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

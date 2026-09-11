@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Samko Cars — Nigeria's Trusted Car Dealership{% endblock %}
+{% block meta_description %}Learn about Samko Cars — our story, mission, vision, and commitment to delivering Nigeria's most trusted verified automobile buying experience.{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:2">
+    <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:0.75rem">
+      <a href="{% url 'core:home' %}">Home</a>
+      <span aria-hidden="true">›</span>
+      <span style="color:rgba(255,255,255,0.7)">About Us</span>
+    </nav>
+    <h1>About Samko Cars</h1>
+    <p>Nigeria's most trusted verified automobile dealership</p>
+  </div>
+</div>
+
+<!-- Stats -->
+<section class="section-sm" style="background:var(--bg-surface-2)">
+  <div class="container">
+    <div class="grid grid-4" style="gap:1rem">
+      <div class="about-stat"><div class="stat-number">10+</div><div class="stat-label">Years in Business</div></div>
+      <div class="about-stat"><div class="stat-number">500+</div><div class="stat-label">Vehicles Sold</div></div>
+      <div class="about-stat"><div class="stat-number">1000+</div><div class="stat-label">Happy Customers</div></div>
+      <div class="about-stat"><div class="stat-number">36</div><div class="stat-label">States Served</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Our Story -->
+<section class="section">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr;gap:3rem;align-items:center">
+      <div>
+        <span class="section-label">📖 Our Story</span>
+        <h2 style="margin-top:0.75rem;margin-bottom:1.25rem">Built on Trust. Driven by Excellence.</h2>
+        <div style="color:var(--text-secondary);line-height:1.9;font-size:1rem">
+          {% if site_settings %}
+            <p>{{ site_settings.about_story }}</p>
+          {% else %}
+            <p>Established with a vision for transparency and customer integrity, Samko Cars has grown into one of Nigeria's most recognized automobile dealerships. We bridge the gap between discerning car buyers and verified, premium vehicles.</p>
+            <p style="margin-top:1rem">From our flagship showroom in Lagos to serving customers across all 36 states, we have built our reputation on one foundation: <strong>trust</strong>.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Mission & Vision -->
+<section class="section-sm" style="background:var(--bg-surface-2)">
+  <div class="container">
+    <div class="grid grid-2" style="gap:2rem">
+      <div class="card" style="padding:2rem">
+        <div class="feature-icon" style="margin-bottom:1rem">🎯</div>
+        <h3 style="margin-bottom:0.75rem">Our Mission</h3>
+        <p style="color:var(--text-secondary);line-height:1.7">
+          {% if site_settings %}{{ site_settings.mission }}{% else %}To deliver unmatched automotive satisfaction through strict vehicle inspections, upfront pricing, and frictionless dealership support across Nigeria.{% endif %}
+        </p>
+      </div>
+      <div class="card" style="padding:2rem">
+        <div class="feature-icon" style="margin-bottom:1rem">🔭</div>
+        <h3 style="margin-bottom:0.75rem">Our Vision</h3>
+        <p style="color:var(--text-secondary);line-height:1.7">
+          {% if site_settings %}{{ site_settings.vision }}{% else %}To be West Africa's leading benchmark in certified pre-owned and luxury automobile sales, setting the standard for transparency and customer care.{% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quality Assurance -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">🛡️ Quality</span>
+      <h2>Our Quality Assurance Process</h2>
+      <p>Every vehicle undergoes our rigorous multi-point certification before being listed</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔬</div>
+        <h3 style="margin-bottom:0.75rem">Computer Diagnostic Scan</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">Full OBD-II and manufacturer diagnostic scans to identify and disclose any electronic faults or pending repairs.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💧</div>
+        <h3 style="margin-bottom:0.75rem">Flood Damage Inspection</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">Thorough interior, undercarriage, and engine bay inspection for flood damage — a critical check for all Tokunbo vehicles.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📐</div>
+        <h3 style="margin-bottom:0.75rem">Chassis & Frame Check</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">Laser frame alignment and chassis inspection to verify structural integrity after any prior collision repairs.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛃</div>
+        <h3 style="margin-bottom:0.75rem">Customs Authentication</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">All foreign used vehicles have verified customs clearance documentation from Nigerian Customs Service.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚙️</div>
+        <h3 style="margin-bottom:0.75rem">Mechanical Inspection</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">Engine, gearbox, suspension, brakes, tyres, and cooling system fully evaluated by certified mechanics.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <h3 style="margin-bottom:0.75rem">Full Documentation</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">
+          {% if site_settings %}{{ site_settings.quality_assurance|truncatewords:25 }}{% else %}Complete transfer of ownership documentation, proof of purchase receipts, and registration assistance.{% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Location & Contact -->
+<section class="section-sm" style="background:var(--bg-surface-2)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">📍 Location</span>
+      <h2>Visit Our Showroom</h2>
+    </div>
+    <div class="grid grid-3" style="gap:1.5rem">
+      <div class="contact-info-card">
+        <div class="contact-icon">📍</div>
+        <div>
+          <h4 style="margin-bottom:0.5rem">Address</h4>
+          <p style="color:var(--text-secondary);font-size:0.9rem">{% if site_settings %}{{ site_settings.address }}{% else %}Lekki Phase 1, Lagos, Nigeria{% endif %}</p>
+        </div>
+      </div>
+      <div class="contact-info-card">
+        <div class="contact-icon">⏰</div>
+        <div>
+          <h4 style="margin-bottom:0.5rem">Opening Hours</h4>
+          <p style="color:var(--text-secondary);font-size:0.9rem">{% if site_settings %}{{ site_settings.opening_hours }}{% else %}Mon-Sat: 8AM - 6PM{% endif %}</p>
+        </div>
+      </div>
+      <div class="contact-info-card">
+        <div class="contact-icon">📞</div>
+        <div>
+          <h4 style="margin-bottom:0.5rem">Contact</h4>
+          <p style="color:var(--text-secondary);font-size:0.9rem">{% if site_settings %}{{ site_settings.phone }}<br>{{ site_settings.email }}{% endif %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section cta-section">
+  <div class="container" style="position:relative;z-index:2;text-align:center">
+    <span class="section-label" style="background:rgba(212,160,23,0.2)">🚗 Shop Now</span>
+    <h2 style="color:white;margin-top:1rem;margin-bottom:0.75rem">Find Your Perfect Vehicle Today</h2>
+    <p style="color:rgba(255,255,255,0.7);margin-bottom:2rem">Join thousands of satisfied Samko Cars customers across Nigeria</p>
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
+      <a href="{% url 'cars:list' %}" class="btn btn-primary btn-lg">Browse Cars</a>
+      {% if site_settings %}
+      <a href="https://wa.me/{{ site_settings.whatsapp_number }}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-lg">💬 WhatsApp Us</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

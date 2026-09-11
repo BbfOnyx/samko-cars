@@ -1,0 +1,87 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block page_title %}Social Media Channels{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+  
+  <!-- Current Channels List -->
+  <div class="admin-card">
+    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem">Active & Configured Channels</h3>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      {% for social in socials %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem;background:var(--bg-surface-2);border-radius:var(--radius-md)">
+        <div style="display:flex;align-items:center;gap:0.75rem">
+          <div style="font-size:1.5rem">
+            {% if social.platform == 'instagram' %}📸
+            {% elif social.platform == 'facebook' %}📘
+            {% elif social.platform == 'twitter' or social.platform == 'x' %}𝕏
+            {% elif social.platform == 'tiktok' %}🎵
+            {% elif social.platform == 'youtube' %}▶️
+            {% elif social.platform == 'linkedin' %}💼
+            {% else %}🔗{% endif %}
+          </div>
+          <div>
+            <div style="font-weight:700">{{ social.get_display_name }}</div>
+            <a href="{{ social.url }}" target="_blank" rel="noopener" style="font-size:0.8rem;color:var(--text-muted);word-break:break-all">{{ social.url }}</a>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <a href="{% url 'admin_panel:social_toggle' social.id %}" class="btn btn-sm {% if social.is_active %}btn-success{% else %}btn-outline{% endif %}" style="font-size:0.75rem;padding:3px 8px">
+            {% if social.is_active %}Active{% else %}Inactive{% endif %}
+          </a>
+          <a href="{% url 'admin_panel:social_delete' social.id %}" onclick="return confirm('Remove {{ social.get_display_name }}?')" class="btn btn-sm btn-danger" style="font-size:0.75rem;padding:3px 8px">
+            ✕
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+        No social media channels added yet. Add your first platform on the right.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Add New Platform Form -->
+  <div class="admin-card">
+    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem">➕ Add Social Media Channel</h3>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label class="form-label" for="platform">Platform *</label>
+        <select id="platform" name="platform" class="form-select" required>
+          <option value="instagram">Instagram</option>
+          <option value="facebook">Facebook</option>
+          <option value="twitter">X / Twitter</option>
+          <option value="tiktok">TikTok</option>
+          <option value="youtube">YouTube</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="whatsapp">WhatsApp Channel</option>
+          <option value="other">Other / Custom Website</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label class="form-label" for="platform_name">Custom Label / Handle (Optional)</label>
+        <input type="text" id="platform_name" name="platform_name" class="form-input" placeholder="@samkocarsng or Samko Cars NG">
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label class="form-label" for="url">Full Profile URL *</label>
+        <input type="url" id="url" name="url" class="form-input" placeholder="https://instagram.com/samkocars" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.5rem">
+        <label class="form-label" for="order">Display Order</label>
+        <input type="number" id="order" name="order" class="form-input" value="0">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%">Add Channel</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

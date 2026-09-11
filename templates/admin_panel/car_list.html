@@ -1,0 +1,139 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static humanize %}
+
+{% block page_title %}Manage Vehicles{% endblock %}
+
+{% block content %}
+
+<!-- Table Header Controls -->
+<div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <div>
+    <a href="{% url 'admin_panel:car_add' %}" class="btn btn-primary">➕ Add New Vehicle</a>
+  </div>
+  <form method="GET" style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">
+    <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Search..." style="width:200px">
+    <select name="status" class="form-control" style="width:auto">
+      <option value="">All Status</option>
+      <option value="available" {% if selected_status == 'available' %}selected{% endif %}>Available</option>
+      <option value="reserved" {% if selected_status == 'reserved' %}selected{% endif %}>Reserved</option>
+      <option value="sold" {% if selected_status == 'sold' %}selected{% endif %}>Sold</option>
+    </select>
+    <select name="make" class="form-control" style="width:auto">
+      <option value="">All Makes</option>
+      {% for make in all_makes %}
+        <option value="{{ make }}" {% if selected_make == make %}selected{% endif %}>{{ make }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-outline btn-sm">Filter</button>
+    {% if search_query or selected_status or selected_make %}
+      <a href="{% url 'admin_panel:car_list' %}" class="btn btn-sm" style="background:var(--bg-surface-3);border:1px solid var(--border-color)">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Vehicles Table -->
+<div class="admin-table-wrap">
+  <div class="admin-table-head">
+    <h2>🚗 All Vehicles <span style="font-size:0.85rem;font-weight:400;color:var(--text-muted)">({{ page_obj.paginator.count }} total)</span></h2>
+  </div>
+  <div class="admin-table-responsive">
+    <table class="admin-table" role="table">
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th>Vehicle</th>
+          <th>Year</th>
+          <th>Price</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>Featured</th>
+          <th>Added</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for car in page_obj %}
+        <tr>
+          <td>
+            {% with car.get_cover_image as img %}
+            {% if img %}
+              <img src="{{ img.image.url }}" alt="{{ car }}" class="table-thumb" onerror="this.onerror=null;this.src='/static/images/car-fallback.svg'">
+            {% else %}
+              <div class="table-thumb" style="display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:var(--bg-surface-3)">🚗</div>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            <span class="table-car-name">{{ car.make }} {{ car.model }}</span>
+            <span class="table-car-sub">{{ car.get_condition_display }} • {{ car.get_transmission_display }}</span>
+          </td>
+          <td>{{ car.year }}</td>
+          <td style="font-weight:700;color:var(--color-primary);white-space:nowrap">{{ car.formatted_price }}</td>
+          <td style="font-size:0.85rem">{{ car.location }}</td>
+          <td>
+            {% if car.status == 'available' %}<span class="status-pill status-available">● Available</span>
+            {% elif car.status == 'reserved' %}<span class="status-pill status-reserved">● Reserved</span>
+            {% else %}<span class="status-pill status-sold">● Sold</span>{% endif %}
+          </td>
+          <td style="text-align:center">
+            {% if car.is_featured %}
+              <a href="{% url 'admin_panel:car_toggle_featured' car.pk %}" title="Remove from featured" style="font-size:1.2rem;text-decoration:none">⭐</a>
+            {% else %}
+              <a href="{% url 'admin_panel:car_toggle_featured' car.pk %}" title="Add to featured" style="font-size:1.2rem;opacity:0.3;text-decoration:none">☆</a>
+            {% endif %}
+          </td>
+          <td style="font-size:0.8rem;color:var(--text-muted);white-space:nowrap">{{ car.created_at|date:"d M Y" }}</td>
+          <td>
+            <div class="action-buttons">
+              <a href="{{ car.get_absolute_url }}" class="action-btn" title="View on website" target="_blank">👁</a>
+              <a href="{% url 'admin_panel:car_edit' car.pk %}" class="action-btn" title="Edit vehicle">✏️</a>
+              {% if car.status != 'sold' %}
+                <a href="{% url 'admin_panel:car_toggle_status' car.pk 'sold' %}" class="action-btn" title="Mark as Sold"
+                   onclick="return confirm('Mark {{ car }} as SOLD?')">🏷️</a>
+              {% endif %}
+              {% if car.status != 'reserved' %}
+                <a href="{% url 'admin_panel:car_toggle_status' car.pk 'reserved' %}" class="action-btn" title="Mark as Reserved"
+                   onclick="return confirm('Mark {{ car }} as RESERVED?')">⏳</a>
+              {% endif %}
+              {% if car.status != 'available' %}
+                <a href="{% url 'admin_panel:car_toggle_status' car.pk 'available' %}" class="action-btn success" title="Mark as Available">✅</a>
+              {% endif %}
+              <a href="{% url 'admin_panel:car_delete' car.pk %}" class="action-btn danger" title="Delete vehicle">🗑️</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" style="text-align:center;padding:3rem;color:var(--text-muted)">
+            <div style="font-size:3rem;margin-bottom:1rem">🚗</div>
+            <p>No vehicles found. <a href="{% url 'admin_panel:car_add' %}">Add your first vehicle →</a></p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div style="padding:1.25rem 1.5rem;border-top:1px solid var(--border-color-light);display:flex;justify-content:center">
+    <nav class="pagination" aria-label="Vehicle pages">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ selected_status }}&make={{ selected_make }}" class="page-btn">‹</a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <span class="page-btn active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a href="?page={{ num }}&q={{ search_query }}&status={{ selected_status }}&make={{ selected_make }}" class="page-btn">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ selected_status }}&make={{ selected_make }}" class="page-btn">›</a>
+      {% endif %}
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

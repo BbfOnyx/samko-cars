@@ -1,0 +1,123 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load humanize %}
+
+{% block page_title %}Customer Enquiries{% endblock %}
+
+{% block content %}
+<!-- Filter Tabs -->
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+    <a href="{% url 'admin_panel:enquiries' %}" class="badge {% if not selected_status %}badge-available{% endif %}" style="padding:0.5rem 1rem;text-decoration:none;font-size:0.85rem">All ({{ page_obj.paginator.count }})</a>
+    <a href="{% url 'admin_panel:enquiries' %}?status=new" class="badge {% if selected_status == 'new' %}badge-available{% endif %}" style="padding:0.5rem 1rem;text-decoration:none;font-size:0.85rem">🟡 New</a>
+    <a href="{% url 'admin_panel:enquiries' %}?status=contacted" class="badge {% if selected_status == 'contacted' %}badge-reserved{% endif %}" style="padding:0.5rem 1rem;text-decoration:none;font-size:0.85rem">🔵 Contacted</a>
+    <a href="{% url 'admin_panel:enquiries' %}?status=resolved" class="badge {% if selected_status == 'resolved' %}badge-sold{% endif %}" style="padding:0.5rem 1rem;text-decoration:none;font-size:0.85rem">🟢 Resolved</a>
+  </div>
+</div>
+
+<div class="admin-card">
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Customer</th>
+          <th>Contact</th>
+          <th>Vehicle</th>
+          <th>Subject / Message</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for enquiry in page_obj %}
+        <tr style="{% if enquiry.status == 'new' %}background:rgba(217, 119, 6, 0.05);{% endif %}">
+          <td><strong>#{{ enquiry.id }}</strong></td>
+          <td>
+            <div style="font-weight:700">{{ enquiry.name }}</div>
+          </td>
+          <td>
+            <div style="font-size:0.85rem">📞 <a href="tel:{{ enquiry.phone }}">{{ enquiry.phone }}</a></div>
+            <div style="font-size:0.85rem">✉️ <a href="mailto:{{ enquiry.email }}">{{ enquiry.email }}</a></div>
+            {% if enquiry.phone %}
+            <div style="margin-top:0.25rem">
+              <a href="https://wa.me/{{ enquiry.phone|cut:'+'|cut:' '|cut:'-' }}" target="_blank" rel="noopener" class="btn btn-sm btn-whatsapp" style="padding:2px 8px;font-size:0.75rem">Chat WhatsApp</a>
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            {% if enquiry.car %}
+              <a href="{% url 'cars:detail' enquiry.car.id %}" target="_blank" style="font-weight:600;color:var(--color-primary)">
+                {{ enquiry.car.year }} {{ enquiry.car.make }} {{ enquiry.car.model }}
+              </a>
+              <div style="font-size:0.8rem;color:var(--text-muted)">{{ enquiry.car.formatted_price }}</div>
+            {% else %}
+              <span style="color:var(--text-muted);font-size:0.85rem">General Inquiry</span>
+            {% endif %}
+          </td>
+          <td style="max-width:300px">
+            {% if enquiry.subject %}<div style="font-weight:600;font-size:0.85rem;margin-bottom:0.2rem">{{ enquiry.subject }}</div>{% endif %}
+            <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.4">{{ enquiry.message|linebreaksbr }}</div>
+          </td>
+          <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted)">
+            {{ enquiry.created_at|date:"M d, Y" }}<br>
+            {{ enquiry.created_at|time:"H:i" }}
+          </td>
+          <td>
+            {% if enquiry.status == 'new' %}
+              <span class="badge" style="background:#fef3c7;color:#92400e;font-weight:700">🟡 NEW</span>
+            {% elif enquiry.status == 'contacted' %}
+              <span class="badge" style="background:#e0f2fe;color:#075985;font-weight:700">🔵 Contacted</span>
+            {% else %}
+              <span class="badge" style="background:#dcfce7;color:#166534;font-weight:700">🟢 Resolved</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              {% if enquiry.status != 'contacted' %}
+              <a href="{% url 'admin_panel:enquiry_status' enquiry.id 'contacted' %}" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Mark Contacted</a>
+              {% endif %}
+              {% if enquiry.status != 'resolved' %}
+              <a href="{% url 'admin_panel:enquiry_status' enquiry.id 'resolved' %}" class="btn btn-sm btn-success" style="font-size:0.75rem;padding:3px 8px">Mark Resolved</a>
+              {% endif %}
+              {% if enquiry.status != 'new' %}
+              <a href="{% url 'admin_panel:enquiry_status' enquiry.id 'new' %}" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Mark New</a>
+              {% endif %}
+              <a href="{% url 'admin_panel:enquiry_delete' enquiry.id %}" onclick="return confirm('Delete this enquiry?')" class="btn btn-sm btn-danger" style="font-size:0.75rem;padding:3px 8px">Delete</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center;padding:3rem;color:var(--text-muted)">
+            <div style="font-size:2.5rem;margin-bottom:0.5rem">📬</div>
+            <div>No enquiries found matching this filter.</div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div class="pagination-wrapper" style="margin-top:1.5rem">
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}" class="page-link">← Prev</a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="page-link active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}{% if selected_status %}&status={{ selected_status }}{% endif %}" class="page-link">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}" class="page-link">Next →</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

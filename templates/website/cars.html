@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Cars for Sale in Nigeria — Samko Cars{% endblock %}
+{% block meta_description %}Browse {{ total_matches }} verified cars for sale in Nigeria. Filter by make, price, condition, location. Tokunbo and Nigerian-used vehicles at Samko Cars.{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:2">
+    <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:0.75rem">
+      <a href="{% url 'core:home' %}">Home</a>
+      <span aria-hidden="true">›</span>
+      <span style="color:rgba(255,255,255,0.7)">Browse Cars</span>
+    </nav>
+    <h1>Cars for Sale</h1>
+    <p>{{ total_matches }} verified vehicle{{ total_matches|pluralize }} available across Nigeria</p>
+  </div>
+</div>
+
+<section class="section-sm">
+  <div class="container">
+
+    <!-- Sort Bar & Filter Toggle -->
+    <div class="sort-bar">
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <button id="filter-toggle" class="filter-toggle-btn" aria-expanded="false">
+          🔍 {% if selected_make or selected_condition or selected_transmission or search_query %}Filters Active{% else %}Show Filters{% endif %}
+        </button>
+        <p><strong>{{ total_matches }}</strong> vehicle{{ total_matches|pluralize }} found</p>
+      </div>
+
+      <form method="GET" style="display:flex;align-items:center;gap:0.5rem">
+        <!-- Preserve active filters -->
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+        {% if selected_make %}<input type="hidden" name="make" value="{{ selected_make }}">{% endif %}
+        {% if selected_model %}<input type="hidden" name="model" value="{{ selected_model }}">{% endif %}
+        {% if selected_min_price %}<input type="hidden" name="min_price" value="{{ selected_min_price }}">{% endif %}
+        {% if selected_max_price %}<input type="hidden" name="max_price" value="{{ selected_max_price }}">{% endif %}
+        {% if selected_condition %}<input type="hidden" name="condition" value="{{ selected_condition }}">{% endif %}
+        {% if selected_transmission %}<input type="hidden" name="transmission" value="{{ selected_transmission }}">{% endif %}
+        {% if selected_fuel_type %}<input type="hidden" name="fuel_type" value="{{ selected_fuel_type }}">{% endif %}
+        {% if selected_body_type %}<input type="hidden" name="body_type" value="{{ selected_body_type }}">{% endif %}
+        {% if selected_location %}<input type="hidden" name="location" value="{{ selected_location }}">{% endif %}
+        {% if selected_status %}<input type="hidden" name="status" value="{{ selected_status }}">{% endif %}
+
+        <label for="sort-select" style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap">Sort by:</label>
+        <select id="sort-select" name="sort" class="form-control" style="width:auto;min-width:180px"
+                onchange="this.form.submit()">
+          <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+          <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low → High</option>
+          <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High → Low</option>
+          <option value="mileage_low" {% if sort_by == 'mileage_low' %}selected{% endif %}>Mileage: Lowest</option>
+          <option value="year_new" {% if sort_by == 'year_new' %}selected{% endif %}>Year: Newest</option>
+          <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest Listed</option>
+        </select>
+      </form>
+    </div>
+
+    <!-- Main Layout: Sidebar + Grid -->
+    <div class="marketplace-layout">
+
+      <!-- ── Filter Sidebar ── -->
+      <aside id="filter-sidebar" class="filter-sidebar" style="display:none" aria-label="Filter vehicles">
+        <h3>🔍 Filter Vehicles</h3>
+
+        <form method="GET" id="filter-form" action="{% url 'cars:list' %}">
+          <input type="hidden" name="sort" value="{{ sort_by }}">
+
+          <!-- Quick Search -->
+          <div class="filter-group">
+            <label for="search-input">Keyword Search</label>
+            <input id="search-input" type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Make, model, keyword...">
+          </div>
+
+          <!-- Make -->
+          <div class="filter-group">
+            <label for="make-select">Make</label>
+            <select id="make-select" name="make" class="form-control">
+              <option value="">Any Make</option>
+              {% for make in available_makes %}
+                <option value="{{ make }}" {% if selected_make == make %}selected{% endif %}>{{ make }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Model -->
+          <div class="filter-group">
+            <label for="model-input">Model</label>
+            <input id="model-input" type="text" name="model" value="{{ selected_model }}" class="form-control" placeholder="e.g. Camry, X5...">
+          </div>
+
+          <!-- Price Range -->
+          <div class="filter-group">
+            <label>Price Range (₦)</label>
+            <input type="number" name="min_price" value="{{ selected_min_price }}" class="form-control" placeholder="Min price" style="margin-bottom:0.5rem">
+            <input type="number" name="max_price" value="{{ selected_max_price }}" class="form-control" placeholder="Max price">
+          </div>
+
+          <!-- Year Range -->
+          <div class="filter-group">
+            <label>Year</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+              <input type="number" name="year_min" value="{{ selected_year_min }}" class="form-control" placeholder="From" min="2000" max="2025">
+              <input type="number" name="year_max" value="{{ selected_year_max }}" class="form-control" placeholder="To" min="2000" max="2025">
+            </div>
+          </div>
+
+          <!-- Condition -->
+          <div class="filter-group">
+            <label for="condition-select">Condition</label>
+            <select id="condition-select" name="condition" class="form-control">
+              <option value="">Any Condition</option>
+              {% for val, label in available_conditions %}
+                <option value="{{ val }}" {% if selected_condition == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Transmission -->
+          <div class="filter-group">
+            <label for="trans-select">Transmission</label>
+            <select id="trans-select" name="transmission" class="form-control">
+              <option value="">Any</option>
+              {% for val, label in available_transmissions %}
+                <option value="{{ val }}" {% if selected_transmission == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Fuel Type -->
+          <div class="filter-group">
+            <label for="fuel-select">Fuel Type</label>
+            <select id="fuel-select" name="fuel_type" class="form-control">
+              <option value="">Any</option>
+              {% for val, label in available_fuel_types %}
+                <option value="{{ val }}" {% if selected_fuel_type == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Body Type -->
+          <div class="filter-group">
+            <label for="body-select">Body Type</label>
+            <select id="body-select" name="body_type" class="form-control">
+              <option value="">Any</option>
+              {% for val, label in available_body_types %}
+                <option value="{{ val }}" {% if selected_body_type == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Location -->
+          <div class="filter-group">
+            <label for="location-input">Location</label>
+            <input id="location-input" type="text" name="location" value="{{ selected_location }}" class="form-control" placeholder="e.g. Lagos, Abuja...">
+          </div>
+
+          <!-- Status -->
+          <div class="filter-group">
+            <label for="status-select">Availability</label>
+            <select id="status-select" name="status" class="form-control">
+              <option value="">All</option>
+              <option value="available" {% if selected_status == 'available' %}selected{% endif %}>Available</option>
+              <option value="reserved" {% if selected_status == 'reserved' %}selected{% endif %}>Reserved</option>
+              <option value="sold" {% if selected_status == 'sold' %}selected{% endif %}>Sold</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
+          <a href="{% url 'cars:list' %}" class="btn btn-outline btn-block" style="margin-top:0.5rem">Clear All</a>
+        </form>
+      </aside>
+
+      <!-- ── Car Grid ── -->
+      <div>
+        {% if cars %}
+          <div class="grid grid-3" style="gap:1.5rem">
+            {% for car in cars %}
+            {% include 'website/_car_card.html' with car=car %}
+            {% endfor %}
+          </div>
+
+          <!-- Pagination -->
+          {% if cars.has_other_pages %}
+          <nav class="pagination" aria-label="Page navigation">
+            {% if cars.has_previous %}
+            <a href="?page=1{% if filter_querystring %}&{{ filter_querystring }}{% endif %}" class="page-btn" aria-label="First page">«</a>
+            <a href="?page={{ cars.previous_page_number }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}" class="page-btn" aria-label="Previous page">‹</a>
+            {% endif %}
+
+            {% for num in cars.paginator.page_range %}
+              {% if cars.number == num %}
+                <span class="page-btn active" aria-current="page" aria-label="Page {{ num }}">{{ num }}</span>
+              {% elif num > cars.number|add:'-3' and num < cars.number|add:'3' %}
+                <a href="?page={{ num }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}" class="page-btn" aria-label="Page {{ num }}">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+
+            {% if cars.has_next %}
+            <a href="?page={{ cars.next_page_number }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}" class="page-btn" aria-label="Next page">›</a>
+            <a href="?page={{ cars.paginator.num_pages }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}" class="page-btn" aria-label="Last page">»</a>
+            {% endif %}
+          </nav>
+          {% endif %}
+
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h3>No Vehicles Found</h3>
+            <p>No cars match your current search criteria. Try adjusting your filters or browse all available vehicles.</p>
+            <a href="{% url 'cars:list' %}" class="btn btn-primary">Browse All Cars</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Show filter sidebar by default on desktop
+document.addEventListener('DOMContentLoaded', function() {
+  const sidebar = document.getElementById('filter-sidebar');
+  const btn = document.getElementById('filter-toggle');
+  if (window.innerWidth >= 1024) {
+    sidebar.style.display = 'block';
+  }
+  if (btn) {
+    btn.addEventListener('click', function() {
+      const isVisible = sidebar.style.display === 'block';
+      sidebar.style.display = isVisible ? 'none' : 'block';
+      this.setAttribute('aria-expanded', !isVisible);
+    });
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">Samko Cars vehicle image unavailable</title>
+  <desc id="desc">A simple illustrated car silhouette on a dark background.</desc>
+  <rect width="800" height="500" fill="#17202b"/>
+  <path d="M180 310h440l-35-105c-8-24-30-40-55-40H300c-25 0-47 16-55 40l-35 105Z" fill="#d4a017"/>
+  <path d="M255 205h290l-20-27c-8-11-20-18-34-18H309c-14 0-26 7-34 18l-20 27Z" fill="#9fb3c8"/>
+  <circle cx="270" cy="320" r="42" fill="#0d1218" stroke="#d4a017" stroke-width="12"/>
+  <circle cx="530" cy="320" r="42" fill="#0d1218" stroke="#d4a017" stroke-width="12"/>
+  <text x="400" y="420" fill="#f8f9fa" font-family="sans-serif" font-size="28" text-anchor="middle">SAMKO CARS</text>
+</svg>

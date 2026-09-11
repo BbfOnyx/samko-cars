@@ -1,0 +1,140 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin Panel — Samko Cars{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+  <script>(function(){var t=localStorage.getItem('samko-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <meta name="robots" content="noindex, nofollow">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- ════════════════════════════════════════════════
+       SIDEBAR
+  ════════════════════════════════════════════════ -->
+  <aside id="admin-sidebar" class="admin-sidebar" role="navigation" aria-label="Admin navigation">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">S</div>
+      <div class="sidebar-brand-name">
+        Samko Cars
+        <small>Admin Dashboard</small>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Main admin navigation">
+      <div class="sidebar-section-label">Overview</div>
+      <a href="{% url 'admin_panel:dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <span class="icon">📊</span> Dashboard
+        {% if admin_unread_count > 0 %}
+          <span class="badge-count">{{ admin_unread_count }}</span>
+        {% endif %}
+      </a>
+
+      <div class="sidebar-section-label" style="margin-top:0.5rem">Inventory</div>
+      <a href="{% url 'admin_panel:car_list' %}" class="sidebar-link {% if 'car' in request.resolver_match.url_name and request.resolver_match.url_name != 'car_add' %}active{% endif %}">
+        <span class="icon">🚗</span> All Vehicles
+      </a>
+      <a href="{% url 'admin_panel:car_add' %}" class="sidebar-link {% if request.resolver_match.url_name == 'car_add' %}active{% endif %}">
+        <span class="icon">➕</span> Add Vehicle
+      </a>
+
+      <div class="sidebar-section-label" style="margin-top:0.5rem">Leads & Sales</div>
+      <a href="{% url 'admin_panel:enquiries' %}" class="sidebar-link {% if request.resolver_match.url_name == 'enquiries' %}active{% endif %}">
+        <span class="icon">✉️</span> Enquiries
+        {% if pending_enquiries_count > 0 %}
+          <span class="badge-count">{{ pending_enquiries_count }}</span>
+        {% endif %}
+      </a>
+      <a href="{% url 'admin_panel:purchases' %}" class="sidebar-link {% if request.resolver_match.url_name == 'purchases' %}active{% endif %}">
+        <span class="icon">🛒</span> Purchase Requests
+        {% if pending_purchases_count > 0 %}
+          <span class="badge-count">{{ pending_purchases_count }}</span>
+        {% endif %}
+      </a>
+
+      <div class="sidebar-section-label" style="margin-top:0.5rem">Settings</div>
+      <a href="{% url 'admin_panel:testimonials' %}" class="sidebar-link {% if request.resolver_match.url_name == 'testimonials' %}active{% endif %}">
+        <span class="icon">💬</span> Testimonials
+      </a>
+      <a href="{% url 'admin_panel:social' %}" class="sidebar-link {% if request.resolver_match.url_name == 'social' %}active{% endif %}">
+        <span class="icon">📱</span> Social Media
+      </a>
+      <a href="{% url 'admin_panel:settings' %}" class="sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+        <span class="icon">⚙️</span> Site Settings
+      </a>
+
+      <div class="sidebar-section-label" style="margin-top:0.5rem">Tools</div>
+      <a href="{% url 'core:home' %}" target="_blank" class="sidebar-link">
+        <span class="icon">🌐</span> View Website
+      </a>
+      <a href="{% url 'admin:index' %}" target="_blank" class="sidebar-link">
+        <span class="icon">🔧</span> Django Admin
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div style="padding:0.5rem 0;border-top:1px solid rgba(255,255,255,0.07);margin-bottom:0.5rem">
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:0.25rem">Signed in as</div>
+        <div style="font-size:0.85rem;color:rgba(255,255,255,0.7);font-weight:600">{{ request.user.get_full_name|default:request.user.username }}</div>
+      </div>
+      <a href="{% url 'admin_panel:logout' %}">
+        <span>🚪</span> Sign Out
+      </a>
+    </div>
+  </aside>
+
+  <!-- ════════════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════════════ -->
+  <div class="admin-main">
+
+    <!-- Top Bar -->
+    <header class="admin-topbar">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <button id="sidebar-toggle" class="sidebar-toggle-btn" type="button" aria-label="Toggle sidebar">
+          <span></span><span></span><span></span>
+        </button>
+        <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+      </div>
+      <div class="admin-topbar-actions">
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
+        <div class="admin-user-badge">
+          <span>👤</span>
+          <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div style="padding:1rem 1.5rem 0">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}" data-auto-dismiss>
+          {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Page Content -->
+    <div class="admin-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/admin.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

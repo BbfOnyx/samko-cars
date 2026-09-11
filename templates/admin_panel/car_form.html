@@ -1,0 +1,217 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block page_title %}{{ action }} Vehicle{% endblock %}
+
+{% block content %}
+<div style="max-width:960px">
+  <div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem">
+    <a href="{% url 'admin_panel:car_list' %}" class="btn btn-outline btn-sm">← Back to Vehicles</a>
+    <h2 style="font-size:1.25rem">{{ action }} Vehicle{% if car %}: {{ car }}{% endif %}</h2>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- BASIC INFORMATION -->
+    <div class="admin-form-card" style="margin-bottom:1.5rem">
+      <div class="admin-form-section">
+        <h3>📋 Basic Information</h3>
+        <div class="admin-form-grid cols-3">
+          <div class="form-group">
+            <label class="form-label" for="id_make">Make *</label>
+            <input id="id_make" type="text" name="make" value="{{ car.make|default:'' }}" class="form-control" placeholder="e.g. Toyota" required list="make-list">
+            <datalist id="make-list">
+              <option value="Toyota"><option value="Lexus"><option value="Mercedes-Benz"><option value="BMW">
+              <option value="Honda"><option value="Hyundai"><option value="Kia"><option value="Ford">
+              <option value="Nissan"><option value="Volkswagen"><option value="Audi"><option value="Land Rover">
+              <option value="Jeep"><option value="Peugeot"><option value="Volvo"><option value="Chevrolet">
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_model">Model *</label>
+            <input id="id_model" type="text" name="model" value="{{ car.model|default:'' }}" class="form-control" placeholder="e.g. Camry XSE" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_year">Year *</label>
+            <input id="id_year" type="number" name="year" value="{{ car.year|default:'' }}" class="form-control" placeholder="e.g. 2022" min="1990" max="2026" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_price">Price (₦) *</label>
+            <input id="id_price" type="number" name="price" value="{{ car.price|default:'' }}" class="form-control" placeholder="e.g. 25000000" required min="0" step="100000">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_vin">VIN / Chassis No</label>
+            <input id="id_vin" type="text" name="vin" value="{{ car.vin|default:'' }}" class="form-control" placeholder="Optional — chassis number">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_location">Location *</label>
+            <input id="id_location" type="text" name="location" value="{{ car.location|default:'Lekki, Lagos' }}" class="form-control" placeholder="e.g. Lekki, Lagos" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_description">Description</label>
+          <textarea id="id_description" name="description" class="form-control" rows="5" placeholder="Describe the vehicle — condition, features, history, selling points...">{{ car.description|default:'' }}</textarea>
+        </div>
+      </div>
+
+      <!-- VEHICLE SPECIFICATIONS -->
+      <div class="admin-form-section">
+        <h3>🔧 Vehicle Specifications</h3>
+        <div class="admin-form-grid cols-3">
+          <div class="form-group">
+            <label class="form-label" for="id_mileage">Mileage (km)</label>
+            <input id="id_mileage" type="number" name="mileage" value="{{ car.mileage|default:'0' }}" class="form-control" placeholder="e.g. 45000" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_engine">Engine</label>
+            <input id="id_engine" type="text" name="engine" value="{{ car.engine|default:'3.5L V6' }}" class="form-control" placeholder="e.g. 3.5L V6, 2.0L Turbo">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_condition">Condition</label>
+            <select id="id_condition" name="condition" class="form-control">
+              <option value="foreign_used" {% if car.condition == 'foreign_used' or not car %}selected{% endif %}>Foreign Used (Tokunbo)</option>
+              <option value="nigerian_used" {% if car.condition == 'nigerian_used' %}selected{% endif %}>Nigerian Used</option>
+              <option value="brand_new" {% if car.condition == 'brand_new' %}selected{% endif %}>Brand New</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_transmission">Transmission</label>
+            <select id="id_transmission" name="transmission" class="form-control">
+              <option value="automatic" {% if car.transmission == 'automatic' or not car %}selected{% endif %}>Automatic</option>
+              <option value="manual" {% if car.transmission == 'manual' %}selected{% endif %}>Manual</option>
+              <option value="cvt" {% if car.transmission == 'cvt' %}selected{% endif %}>CVT</option>
+              <option value="other" {% if car.transmission == 'other' %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_fuel_type">Fuel Type</label>
+            <select id="id_fuel_type" name="fuel_type" class="form-control">
+              <option value="petrol" {% if car.fuel_type == 'petrol' or not car %}selected{% endif %}>Petrol</option>
+              <option value="diesel" {% if car.fuel_type == 'diesel' %}selected{% endif %}>Diesel</option>
+              <option value="hybrid" {% if car.fuel_type == 'hybrid' %}selected{% endif %}>Hybrid</option>
+              <option value="electric" {% if car.fuel_type == 'electric' %}selected{% endif %}>Electric</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_body_type">Body Type</label>
+            <select id="id_body_type" name="body_type" class="form-control">
+              <option value="suv" {% if car.body_type == 'suv' or not car %}selected{% endif %}>SUV</option>
+              <option value="sedan" {% if car.body_type == 'sedan' %}selected{% endif %}>Sedan</option>
+              <option value="coupe" {% if car.body_type == 'coupe' %}selected{% endif %}>Coupe</option>
+              <option value="pickup" {% if car.body_type == 'pickup' %}selected{% endif %}>Pickup Truck</option>
+              <option value="hatchback" {% if car.body_type == 'hatchback' %}selected{% endif %}>Hatchback</option>
+              <option value="convertible" {% if car.body_type == 'convertible' %}selected{% endif %}>Convertible</option>
+              <option value="van" {% if car.body_type == 'van' %}selected{% endif %}>Van / Minivan</option>
+              <option value="wagon" {% if car.body_type == 'wagon' %}selected{% endif %}>Station Wagon</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_exterior_color">Exterior Color</label>
+            <input id="id_exterior_color" type="text" name="exterior_color" value="{{ car.exterior_color|default:'Black' }}" class="form-control" placeholder="e.g. Pearl White, Midnight Black">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_interior_color">Interior Color</label>
+            <input id="id_interior_color" type="text" name="interior_color" value="{{ car.interior_color|default:'Black Leather' }}" class="form-control" placeholder="e.g. Black Leather, Beige">
+          </div>
+        </div>
+      </div>
+
+      <!-- STATUS & VISIBILITY -->
+      <div class="admin-form-section">
+        <h3>📊 Status & Visibility</h3>
+        <div class="admin-form-grid cols-3">
+          <div class="form-group">
+            <label class="form-label" for="id_status">Availability Status</label>
+            <select id="id_status" name="status" class="form-control">
+              <option value="available" {% if car.status == 'available' or not car %}selected{% endif %}>✅ Available</option>
+              <option value="reserved" {% if car.status == 'reserved' %}selected{% endif %}>⏳ Reserved</option>
+              <option value="sold" {% if car.status == 'sold' %}selected{% endif %}>🏷️ Sold</option>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:0.75rem;padding-top:1.5rem">
+            <input id="id_is_featured" type="checkbox" name="is_featured" {% if car.is_featured %}checked{% endif %} style="width:20px;height:20px;accent-color:var(--color-primary)">
+            <label for="id_is_featured" class="form-label" style="margin-bottom:0;cursor:pointer">⭐ Featured on Homepage</label>
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:0.75rem;padding-top:1.5rem">
+            <input id="id_is_active" type="checkbox" name="is_active" {% if car.is_active or not car %}checked{% endif %} style="width:20px;height:20px;accent-color:var(--color-primary)">
+            <label for="id_is_active" class="form-label" style="margin-bottom:0;cursor:pointer">🌐 Publicly Visible</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURES -->
+      <div class="admin-form-section">
+        <h3>✨ Features & Equipment</h3>
+        <div class="features-checkbox-grid">
+          {% for feature in all_features %}
+          <label class="feature-checkbox">
+            <input type="checkbox" name="features" value="{{ feature.id }}"
+              {% if car and feature in car.features.all %}checked{% endif %}>
+            <span>{{ feature.name }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <div class="form-group" style="margin-top:1rem">
+          <label class="form-label" for="custom_features">Custom Features (comma-separated)</label>
+          <input id="custom_features" type="text" name="custom_features" class="form-control"
+                 placeholder="e.g. Factory Tinted Windows, Aftermarket Sound System">
+        </div>
+      </div>
+
+      <!-- IMAGE UPLOAD -->
+      <div class="admin-form-section">
+        <h3>📸 Vehicle Photos</h3>
+
+        {% if car and car.images.exists %}
+        <div style="margin-bottom:1.5rem">
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.75rem">Existing Photos — First image with ⭐ is the cover photo:</p>
+          <div class="image-preview-grid">
+            {% for img in car.images.all %}
+            <div class="image-preview-item {% if img.is_cover %}cover{% endif %}">
+              <img src="{{ img.image.url }}" alt="Car photo {{ forloop.counter }}" onerror="this.onerror=null;this.src='/static/images/car-fallback.svg'">
+              <div class="image-preview-actions">
+                {% if not img.is_cover %}
+                <a href="{% url 'admin_panel:car_image_set_cover' img.id %}" class="img-action-btn set-cover" title="Set as Cover">⭐</a>
+                {% else %}
+                <span class="img-action-btn" style="background:var(--color-primary);color:#1a1a1a;cursor:default">⭐</span>
+                {% endif %}
+                <a href="{% url 'admin_panel:car_image_delete' img.id %}" class="img-action-btn danger"
+                   onclick="return confirm('Delete this image?')" title="Delete">✕</a>
+              </div>
+              {% if img.is_cover %}
+              <div style="position:absolute;bottom:4px;left:4px;background:var(--color-primary);color:#1a1a1a;font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:4px">COVER</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div id="upload-area" class="image-upload-area" role="button" tabindex="0" aria-label="Upload car photos">
+          <div class="upload-icon">📸</div>
+          <p><strong>Click to upload</strong> or drag & drop photos here</p>
+          <p style="font-size:0.75rem;margin-top:0.25rem">JPEG, PNG, WebP — Max 5MB each — Multiple files supported</p>
+          <input id="id_images" type="file" name="images" accept="image/*" multiple style="display:none">
+        </div>
+        <div id="image-preview-grid" class="image-preview-grid" style="margin-top:0.75rem"></div>
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div style="display:flex;gap:1rem;flex-wrap:wrap">
+      <button type="submit" class="btn btn-primary btn-lg">
+        {% if action == 'Edit' %}💾 Save Changes{% else %}➕ Add Vehicle{% endif %}
+      </button>
+      <a href="{% url 'admin_panel:car_list' %}" class="btn btn-outline btn-lg">Cancel</a>
+      {% if car %}
+      <a href="{{ car.get_absolute_url }}" target="_blank" class="btn btn-outline btn-lg">👁 View on Website</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/admin.js' %}"></script>
+{% endblock %}

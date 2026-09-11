@@ -1,0 +1,231 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <!-- SEO Meta -->
+  <title>{% block title %}Samko Cars — Nigeria's Premier Verified Automobile Marketplace{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Browse verified Tokunbo, Nigerian used, and brand new cars at Samko Cars. Competitive pricing, transparent dealership, and seamless buying experience across Nigeria.{% endblock %}">
+  <meta name="keywords" content="{% block meta_keywords %}buy cars Nigeria, Tokunbo cars Lagos, used cars Abuja, Nigerian car dealership, Samko Cars{% endblock %}">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="{% block og_title %}Samko Cars — Nigeria's Premier Car Marketplace{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Discover top-quality verified vehicles at Samko Cars. Browse our curated collection of Tokunbo and clean Nigerian-used cars.{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:site_name" content="Samko Cars">
+  {% block og_image %}<meta property="og:image" content="{% static 'images/og-default.svg' %}">{% endblock %}
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}Samko Cars{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}Nigeria's premier verified automobile marketplace.{% endblock %}">
+
+  <!-- Preconnect for Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_css %}{% endblock %}
+
+  <!-- Inline theme script (prevents flash) -->
+  <script>
+    (function(){
+      var t = localStorage.getItem('samko-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════
+     NAVIGATION
+════════════════════════════════════════════════════ -->
+<header>
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="container">
+      <div class="navbar-inner">
+
+        <!-- Brand/Logo -->
+        <a href="{% url 'core:home' %}" class="navbar-brand" aria-label="Samko Cars - Home">
+          <div class="brand-logo-icon" aria-hidden="true">S</div>
+          <div class="brand-text">Samko <span>Cars</span></div>
+        </a>
+
+        <!-- Desktop Nav Links -->
+        <nav class="navbar-nav" aria-label="Primary navigation">
+          <a href="{% url 'core:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+          <a href="{% url 'cars:list' %}" class="nav-link {% if 'cars' in request.resolver_match.url_name %}active{% endif %}">Browse Cars</a>
+          <a href="{% url 'core:about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a>
+          <a href="{% url 'core:contact' %}" class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a>
+        </nav>
+
+        <!-- Actions -->
+        <div class="navbar-actions">
+          <!-- Theme toggle -->
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark/light mode" title="Toggle theme">🌙</button>
+
+          <!-- WhatsApp -->
+          {% if site_settings %}
+          <a href="https://wa.me/{{ site_settings.whatsapp_number }}" target="_blank" rel="noopener"
+             class="btn btn-whatsapp btn-sm" aria-label="Chat on WhatsApp" style="display:none" id="nav-whatsapp">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            <span class="lg\:d-flex" style="display:none">WhatsApp</span>
+          </a>
+          {% endif %}
+
+          <!-- Hamburger -->
+          <button id="hamburger" class="hamburger" type="button"
+                  aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobile-menu" class="mobile-menu" role="dialog" aria-label="Mobile navigation" aria-modal="true">
+    <a href="{% url 'core:home' %}" class="nav-link">🏠 Home</a>
+    <a href="{% url 'cars:list' %}" class="nav-link">🚗 Browse Cars</a>
+    <a href="{% url 'core:about' %}" class="nav-link">ℹ️ About Us</a>
+    <a href="{% url 'core:contact' %}" class="nav-link">📞 Contact</a>
+    {% if site_settings %}
+    <a href="https://wa.me/{{ site_settings.whatsapp_number }}" target="_blank" rel="noopener"
+       class="nav-link btn btn-whatsapp btn-block" style="margin-top:1rem">
+      💬 WhatsApp Us
+    </a>
+    {% endif %}
+    <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border-color)">
+      {% if request.user.is_authenticated and request.user.is_staff %}
+        <a href="{% url 'admin_panel:dashboard' %}" class="nav-link" style="color:var(--color-primary)">⚙️ Admin Panel</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════════
+     FLASH MESSAGES
+════════════════════════════════════════════════════ -->
+{% if messages %}
+<div style="position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:9000;width:90%;max-width:520px">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }}" data-auto-dismiss style="margin-bottom:0.5rem">
+      {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+      {{ message }}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ════════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════════ -->
+<main id="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════ -->
+<footer class="footer" role="contentinfo">
+  <div class="container">
+    <div class="footer-grid">
+
+      <!-- Brand & Description -->
+      <div>
+        <a href="{% url 'core:home' %}" class="navbar-brand" style="margin-bottom:1rem;display:inline-flex">
+          <div class="brand-logo-icon">S</div>
+          <div class="brand-text" style="color:white">Samko <span>Cars</span></div>
+        </a>
+        <p style="margin-top:1rem;line-height:1.7">
+          {% if site_settings %}{{ site_settings.footer_text }}{% else %}Nigeria's premier verified automobile marketplace.{% endif %}
+        </p>
+        <!-- Social Links -->
+        {% if social_links %}
+        <div class="social-links" style="margin-top:1.5rem">
+          {% for social in social_links %}
+          <a href="{{ social.url }}" target="_blank" rel="noopener noreferrer"
+             class="social-link" aria-label="{{ social.platform_name|default:social.get_platform_display }}">
+            {% if social.platform == 'instagram' %}📷
+            {% elif social.platform == 'facebook' %}👥
+            {% elif social.platform == 'tiktok' %}🎵
+            {% elif social.platform == 'twitter' %}𝕏
+            {% elif social.platform == 'youtube' %}▶
+            {% elif social.platform == 'linkedin' %}💼
+            {% elif social.platform == 'whatsapp' %}💬
+            {% else %}🔗{% endif %}
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <h4>Quick Links</h4>
+        <a href="{% url 'core:home' %}" class="footer-link">Home</a>
+        <a href="{% url 'cars:list' %}" class="footer-link">Browse Cars</a>
+        <a href="{% url 'cars:list' %}?status=available" class="footer-link">Available Vehicles</a>
+        <a href="{% url 'core:about' %}" class="footer-link">About Us</a>
+        <a href="{% url 'core:contact' %}" class="footer-link">Contact</a>
+      </div>
+
+      <!-- Contact Info -->
+      <div>
+        <h4>Contact Us</h4>
+        {% if site_settings %}
+          <p style="margin-bottom:0.5rem;font-size:0.875rem">📞 {{ site_settings.phone }}</p>
+          <p style="margin-bottom:0.5rem;font-size:0.875rem">✉️ {{ site_settings.email }}</p>
+          <a href="https://wa.me/{{ site_settings.whatsapp_number }}" target="_blank" rel="noopener" class="footer-link">💬 WhatsApp</a>
+          <p style="margin-top:0.5rem;font-size:0.875rem;line-height:1.5">📍 {{ site_settings.address }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Business Hours -->
+      <div>
+        <h4>Business Hours</h4>
+        {% if site_settings %}
+          <p style="font-size:0.875rem;line-height:1.8;color:rgba(255,255,255,0.6)">
+            {{ site_settings.opening_hours|linebreaksbr }}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Footer Bottom Bar -->
+    <div class="footer-bottom">
+      <p style="font-size:0.8rem">
+        &copy; {% now "Y" %} {% if site_settings %}{{ site_settings.site_name }}{% else %}Samko Cars{% endif %}. All rights reserved.
+      </p>
+      <p style="font-size:0.8rem">
+        <a href="{% url 'core:robots_txt' %}" class="footer-link" style="margin-right:0.75rem">Sitemap</a>
+        <a href="{% url 'core:contact' %}" class="footer-link">Privacy</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<!-- WhatsApp Float Button -->
+{% if site_settings %}
+<a href="https://wa.me/{{ site_settings.whatsapp_number }}?text={{ site_settings.whatsapp_default_message|urlencode }}"
+   class="whatsapp-float" target="_blank" rel="noopener" aria-label="Chat with Samko Cars on WhatsApp">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+{% endif %}
+
+<!-- Toast container -->
+<div id="toast-container" aria-live="polite" aria-label="Notifications"></div>
+
+<!-- Scripts -->
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

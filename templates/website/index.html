@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}{{ site_settings.site_name|default:"Samko Cars" }} — {{ site_settings.tagline|default:"Nigeria's Premier Car Marketplace" }}{% endblock %}
+
+{% block content %}
+
+<!-- ════════════════════════════════════════════════════
+     HERO SECTION
+════════════════════════════════════════════════════ -->
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span>🏆</span> Nigeria's Most Trusted Car Dealership
+      </div>
+
+      <h1 id="hero-heading">
+        {% if site_settings %}{{ site_settings.hero_title }}{% else %}Find Your Next <span>Dream Car</span> in Nigeria{% endif %}
+      </h1>
+
+      <p>
+        {% if site_settings %}{{ site_settings.hero_subtitle }}{% else %}
+        Explore our carefully curated selection of inspected Tokunbo, clean Nigerian-used, and brand-new vehicles. Transparent pricing in Naira.{% endif %}
+      </p>
+
+      <div class="hero-actions">
+        <a href="{% url 'cars:list' %}" class="btn btn-primary btn-lg">
+          🚗 Browse All Cars
+        </a>
+        <a href="{% url 'core:contact' %}" class="btn btn-outline btn-lg" style="color:white;border-color:rgba(255,255,255,0.4)">
+          📞 Contact Us
+        </a>
+      </div>
+
+      <!-- Hero Search Box -->
+      <div class="hero-search">
+        <h3>🔍 Quick Search</h3>
+        <form method="GET" action="{% url 'cars:list' %}" role="search">
+          <div class="search-grid">
+            <div>
+              <label for="make" class="form-label" style="color:rgba(255,255,255,0.7)">Make</label>
+              <select id="make" name="make" class="form-control">
+                <option value="">Any Make</option>
+                {% for make in popular_brands %}
+                  <option value="{{ make.name }}">{{ make.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label for="model" class="form-label" style="color:rgba(255,255,255,0.7)">Model</label>
+              <input id="model" type="text" name="model" class="form-control" placeholder="e.g. Camry, X5...">
+            </div>
+            <div>
+              <label for="condition" class="form-label" style="color:rgba(255,255,255,0.7)">Condition</label>
+              <select id="condition" name="condition" class="form-control">
+                <option value="">Any Condition</option>
+                <option value="foreign_used">Foreign Used (Tokunbo)</option>
+                <option value="nigerian_used">Nigerian Used</option>
+                <option value="brand_new">Brand New</option>
+              </select>
+            </div>
+            <div>
+              <label for="location" class="form-label" style="color:rgba(255,255,255,0.7)">Location</label>
+              <input id="location" type="text" name="location" class="form-control" placeholder="e.g. Lagos, Abuja...">
+            </div>
+            <div style="display:flex;align-items:flex-end">
+              <button type="submit" class="btn btn-primary btn-block">
+                🔍 Search Cars
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Hero Stats -->
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span>500+</span>
+          <small>Verified Vehicles</small>
+        </div>
+        <div class="hero-stat">
+          <span>100%</span>
+          <small>Inspected & Cleared</small>
+        </div>
+        <div class="hero-stat">
+          <span>10+</span>
+          <small>Years of Excellence</small>
+        </div>
+        <div class="hero-stat">
+          <span>1,000+</span>
+          <small>Happy Customers</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════
+     FEATURED CARS
+════════════════════════════════════════════════════ -->
+{% if featured_cars %}
+<section class="section" style="background:var(--bg-base)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">⭐ Featured</span>
+      <h2>Featured Vehicles</h2>
+      <p>Handpicked premium vehicles from our exclusive collection</p>
+    </div>
+
+    <div class="grid grid-3" style="gap:1.5rem">
+      {% for car in featured_cars %}
+      {% include 'website/_car_card.html' with car=car %}
+      {% endfor %}
+    </div>
+
+    <div style="text-align:center;margin-top:2.5rem">
+      <a href="{% url 'cars:list' %}?featured=true" class="btn btn-outline">View All Featured Cars →</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════════════════════════════════════════════════
+     LATEST ARRIVALS
+════════════════════════════════════════════════════ -->
+{% if latest_cars %}
+<section class="section" style="background:var(--bg-surface-2)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">🆕 Latest Arrivals</span>
+      <h2>Newly Added Vehicles</h2>
+      <p>Fresh stock just added to our dealership</p>
+    </div>
+
+    <div class="grid grid-4" style="gap:1.5rem">
+      {% for car in latest_cars %}
+      {% include 'website/_car_card.html' with car=car %}
+      {% endfor %}
+    </div>
+
+    <div style="text-align:center;margin-top:2.5rem">
+      <a href="{% url 'cars:list' %}?sort=newest" class="btn btn-primary">View All Cars →</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════════════════════════════════════════════════
+     POPULAR BRANDS
+════════════════════════════════════════════════════ -->
+<section class="section" style="background:var(--bg-base)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">🏷️ Brands</span>
+      <h2>Popular Brands in Stock</h2>
+      <p>We carry an extensive selection across Nigeria's most trusted manufacturers</p>
+    </div>
+
+    <div class="brands-grid">
+      {% for brand in popular_brands %}
+      <a href="{% url 'cars:list' %}?make={{ brand.name }}" class="brand-card" aria-label="Browse {{ brand.name }} vehicles">
+        <div class="brand-icon">
+          {% if brand.name == 'Toyota' %}🇯🇵
+          {% elif brand.name == 'Lexus' %}🔷
+          {% elif brand.name == 'Mercedes-Benz' %}⭐
+          {% elif brand.name == 'BMW' %}🔵
+          {% elif brand.name == 'Honda' %}🔴
+          {% elif brand.name == 'Hyundai' %}🅗
+          {% elif brand.name == 'Kia' %}🅚
+          {% elif brand.name == 'Ford' %}🔷
+          {% elif brand.name == 'Land Rover' %}🌲
+          {% else %}🚗{% endif %}
+        </div>
+        <span class="brand-name">{{ brand.name }}</span>
+        <span class="brand-count">{{ brand.count }} vehicle{{ brand.count|pluralize }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════
+     WHY CHOOSE US
+════════════════════════════════════════════════════ -->
+<section class="section" style="background:var(--bg-surface-2)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">✨ Why Samko Cars</span>
+      <h2>Nigeria's Most Trusted Dealership</h2>
+      <p>We go beyond just selling cars — we provide a complete, transparent automotive experience</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3 style="margin-bottom:0.75rem">150-Point Vehicle Inspection</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7">Every car undergoes a comprehensive diagnostic, chassis, and engine inspection before listing. Zero surprises after purchase.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">₦</div>
+        <h3 style="margin-bottom:0.75rem">Transparent Naira Pricing</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7">No hidden charges. The price you see is the price you pay — displayed clearly in Nigerian Naira with no ambiguity.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3 style="margin-bottom:0.75rem">Full Documentation</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7">Every vehicle comes with complete customs clearance papers, registration documents, and service history where available.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <h3 style="margin-bottom:0.75rem">WhatsApp Direct Support</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7">Our dedicated sales team responds instantly on WhatsApp. Get answers, photos, videos, or arrange inspection in minutes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🚚</div>
+        <h3 style="margin-bottom:0.75rem">Nationwide Delivery</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7">Whether you're in Lagos, Abuja, Port Harcourt, or Kano — we arrange safe delivery or pick-up logistics for you.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⭐</div>
+        <h3 style="margin-bottom:0.75rem">After-Sales Support</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7">Our relationship doesn't end at purchase. We provide post-sale guidance, service referrals, and owner assistance.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════════════════ -->
+<section class="section" style="background:var(--bg-base)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">📋 Process</span>
+      <h2>How Buying Works at Samko Cars</h2>
+      <p>A simple, transparent four-step process designed for Nigerian buyers</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3 style="margin-bottom:0.75rem">Browse & Discover</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">Search our curated inventory using filters for make, model, price, condition, and location.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3 style="margin-bottom:0.75rem">View Full Details</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">Review high-resolution photos, complete specifications, features list, and vehicle history.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3 style="margin-bottom:0.75rem">Contact Us Directly</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">Reach out via WhatsApp, phone, or our enquiry form. Our team responds immediately.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">4</div>
+        <h3 style="margin-bottom:0.75rem">Inspect & Complete</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">Schedule an on-site inspection, finalise payment, complete documentation, and drive home.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════
+     TESTIMONIALS
+════════════════════════════════════════════════════ -->
+{% if testimonials %}
+<section class="section" style="background:var(--bg-surface-2)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">💬 Reviews</span>
+      <h2>What Our Customers Say</h2>
+      <p>Verified reviews from satisfied Samko Cars buyers across Nigeria</p>
+    </div>
+
+    <div class="testimonials-grid">
+      {% for t in testimonials %}
+      <article class="testimonial-card">
+        <div class="testimonial-stars" aria-label="{{ t.rating }} out of 5 stars">
+          {% for i in "12345" %}{% if forloop.counter <= t.rating %}⭐{% endif %}{% endfor %}
+        </div>
+        <p class="testimonial-text">"{{ t.comment }}"</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" aria-hidden="true">{{ t.name|first }}</div>
+          <div>
+            <div class="testimonial-name">{{ t.name }}</div>
+            <div class="testimonial-location">📍 {{ t.location }}</div>
+            {% if t.vehicle_purchased %}<div class="testimonial-location">🚗 {{ t.vehicle_purchased }}</div>{% endif %}
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════════════════════════════════════════════════
+     CALL TO ACTION
+════════════════════════════════════════════════════ -->
+<section class="section cta-section" aria-labelledby="cta-heading">
+  <div class="container" style="position:relative;z-index:2">
+    <div class="section-header">
+      <span class="section-label" style="background:rgba(212,160,23,0.2)">🚗 Get Started</span>
+      <h2 id="cta-heading">Ready to Find Your Perfect Car?</h2>
+      <p>Browse our complete inventory of verified vehicles. Your dream car is waiting.</p>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
+      <a href="{% url 'cars:list' %}" class="btn btn-primary btn-lg">Browse All Cars</a>
+      {% if site_settings %}
+      <a href="https://wa.me/{{ site_settings.whatsapp_number }}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-lg">💬 WhatsApp Us Now</a>
+      {% endif %}
+      <a href="{% url 'core:contact' %}" class="btn btn-outline btn-lg" style="color:white;border-color:rgba(255,255,255,0.4)">📞 Call Us</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
