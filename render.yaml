@@ -28,3 +28,7 @@ services:
         value: "https://samko-cars-web.onrender.com"
       - key: SERVE_MEDIA
         value: "True"
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
