@@ -5,7 +5,7 @@ Run: python manage.py seed_cars --clear   (to delete all demo data first)
 """
 import random
 from pathlib import Path
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from django.core.files.base import ContentFile
 from apps.cars.models import Car, Feature
@@ -500,9 +500,36 @@ class Command(BaseCommand):
             "Peugeot 3008 GT": "Peugeot_3008_GT-2.jpg",
             "Toyota Venza XLE": "Toyota_Venza_XLE-2.jpg",
             "Honda CR-V EX-L": "Honda_CR-V_EX-L.jpg",
+            "Toyota Sienna XSE": "ChatGPT_Image_Sep_11_2026_09_27_59_PM_M3vgLal.png",
         }
 
         media_dir = Path(settings.MEDIA_ROOT) / "cars" / "2026" / "09"
+
+        expected_vehicle_names = {
+            f"{vehicle['make']} {vehicle['model']}"
+            for vehicle in SAMPLE_VEHICLES
+        }
+        missing_mappings = expected_vehicle_names - REAL_IMAGE_FILES.keys()
+        extra_mappings = REAL_IMAGE_FILES.keys() - expected_vehicle_names
+        if missing_mappings or extra_mappings:
+            raise CommandError(
+                "Real image mapping does not exactly match the seed inventory. "
+                f"Missing: {sorted(missing_mappings)}; "
+                f"Extra: {sorted(extra_mappings)}"
+            )
+
+        invalid_images = []
+        for vehicle_name, filename in REAL_IMAGE_FILES.items():
+            image_path = media_dir / filename
+            if not image_path.is_file():
+                invalid_images.append(f"{vehicle_name}: missing {filename}")
+            elif image_path.suffix.lower() not in {".jpg", ".jpeg", ".png", ".webp"}:
+                invalid_images.append(f"{vehicle_name}: not a raster photo {filename}")
+        if invalid_images:
+            raise CommandError(
+                "Real vehicle photo validation failed:\n- "
+                + "\n- ".join(invalid_images)
+            )
 
         for vehicle_data in SAMPLE_VEHICLES:
             features_for_car = vehicle_data.pop('features', None)
@@ -547,7 +574,7 @@ class Command(BaseCommand):
                     else None
                 )
 
-                if image_path and image_path.exists():
+                if image_path and image_path.is_file():
                     # The real photos are already bundled inside MEDIA_ROOT and
                     # committed to Git. Assign the existing relative path directly
                     # instead of uploading through FileField.storage. Otherwise
