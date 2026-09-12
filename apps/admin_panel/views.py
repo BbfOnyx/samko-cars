@@ -365,7 +365,7 @@ def car_edit_view(request, pk):
                 )
 
             messages.success(request, f"Vehicle '{car}' updated successfully!")
-            return redirect('admin_panel:car_list')
+            return redirect('admin_panel:car_edit', pk=car.pk)
 
         except Exception as e:
             messages.error(request, f"Error updating vehicle: {str(e)}")

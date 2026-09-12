@@ -68,7 +68,20 @@ document.addEventListener('DOMContentLoaded', function () {
   // ── Drag & Drop Upload Area ─────────────────────────
   const uploadArea = document.getElementById('upload-area');
   if (uploadArea && imageInput) {
-    uploadArea.addEventListener('click', () => imageInput.click());
+    uploadArea.addEventListener('click', function (e) {
+      if (e.target !== imageInput) imageInput.click();
+    });
+
+    imageInput.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+
+    uploadArea.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        imageInput.click();
+      }
+    });
 
     uploadArea.addEventListener('dragover', function (e) {
       e.preventDefault();
