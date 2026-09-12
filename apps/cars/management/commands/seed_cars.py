@@ -4,7 +4,9 @@ Run: python manage.py seed_cars
 Run: python manage.py seed_cars --clear   (to delete all demo data first)
 """
 import random
+from pathlib import Path
 from django.core.management.base import BaseCommand
+from django.conf import settings
 from django.core.files.base import ContentFile
 from apps.cars.models import Car, Feature
 from apps.core.models import SiteSetting, SocialMedia, Testimonial
@@ -461,54 +463,173 @@ class Command(BaseCommand):
 
         # ── Vehicles ──────────────────────────────────────────────────────────
         if not quiet:
-            self.stdout.write(f'Seeding {len(SAMPLE_VEHICLES)} sample vehicles with SVG placeholder images...')
+            self.stdout.write(
+                f'Seeding {len(SAMPLE_VEHICLES)} sample vehicles with real vehicle images...'
+            )
 
         created_count = 0
+
+        # Real vehicle photos bundled in media/cars/2026/09.
+        # The keys match the make/model stored in SAMPLE_VEHICLES.
+        REAL_IMAGE_FILES = {
+            "Toyota Camry XSE": "Toyota_Camry_XSE.jpg",
+            "Toyota Highlander XLE": "Toyota_Highlander_XLE.jpg",
+            "Toyota Land Cruiser V8": "Toyota_Land_Cruiser_V8.jpg",
+            "Toyota Corolla Sport": "Toyota_Corolla_Sport.jpg",
+            "Toyota RAV4 XLE Premium": "Toyota_RAV4_XLE_Premium_2.jpg",
+            "Lexus RX 350 F-Sport": "Lexus_RX_350_F_SPORT.jpg",
+            "Lexus ES 350": "Lexus_ES_350.jpg",
+            "Lexus GX 460 Premium": "Lexus_GX_460_Premium_2.jpg",
+            "Mercedes-Benz GLE 450 AMG-Line": "Mercedes-Benz_GLE_450_4MATIC_AMG.jpg",
+            "Mercedes-Benz C300 AMG Sport": "Mercedes-Benz_C300_AMG_Sport.jpg",
+            "Mercedes-Benz E350 AMG Line": "Mercedes-Benz_E350_AMG_Line.jpg",
+            "BMW X5 xDrive40i": "BMW_X5_xDrive40i.jpg",
+            "BMW 5 Series 530i M-Sport": "BMW_5_Series_530i_M-Sport.jpg",
+            "Honda Pilot TrailSport": "Honda_Pilot_TrailSport.jpg",
+            "Honda Accord Sport": "Honda_Accord_Sport__2025.jpg",
+            "Hyundai Palisade Calligraphy": "Hyundai_Palisade_Calligraphy__2025.jpg",
+            "Hyundai Tucson N-Line": "Hyundai_Tucson_N-Line__2025.jpg",
+            "Kia Telluride EX": "Kia_Telluride_EX__2025.jpg",
+            "Ford Explorer ST": "Ford_Explorer_ST__2025.jpg",
+            "Nissan Armada Platinum": "Nissan_Armada_Platinum.jpg",
+            "Land Rover Range Rover Sport HSE Dynamic": "Land_Rover_Range_Rover_Sport_HSE_Dynamic.jpg",
+            "Land Rover Defender 110 X": "Land_Rover_Defender_110_X.jpg",
+            "Volkswagen Touareg Elegance": "Volkswagen_Touareg_Elegance_2.jpg",
+            "Audi Q7 Quattro Premium Plus": "Audi_Q7_Premium_Plus_quattro.jpg",
+            "Jeep Grand Cherokee Overland": "Jeep_Grand_Cherokee_Overland.jpg",
+            "Peugeot 3008 GT": "Peugeot_3008_GT-2.jpg",
+            "Toyota Venza XLE": "Toyota_Venza_XLE-2.jpg",
+            "Honda CR-V EX-L": "Honda_CR-V_EX-L.jpg",
+        }
+
+        media_dir = Path(settings.MEDIA_ROOT) / "cars" / "2026" / "09"
+
         for vehicle_data in SAMPLE_VEHICLES:
             features_for_car = vehicle_data.pop('features', None)
+
             try:
                 car = Car.objects.create(**vehicle_data)
 
                 # Assign 4–8 random features
-                feature_names = random.sample(list(feature_objects.keys()), k=min(8, len(feature_objects)))
-                # Always include some key ones
-                base_features = ["Air Conditioning", "Reverse Camera", "Bluetooth Connectivity"]
-                for f in base_features:
-                    if f in feature_objects:
-                        feature_names.append(f)
-                car.features.set([feature_objects[f] for f in set(feature_names) if f in feature_objects])
-
-                # Generate and save SVG placeholder image as the cover
-                svg_content = generate_svg_placeholder(
-                    car.year, car.make, car.model, car.body_type, car.exterior_color
+                feature_names = random.sample(
+                    list(feature_objects.keys()),
+                    k=min(8, len(feature_objects))
                 )
+
+                # Always include key features
+                base_features = [
+                    "Air Conditioning",
+                    "Reverse Camera",
+                    "Bluetooth Connectivity",
+                ]
+
+                for feature_name in base_features:
+                    if feature_name in feature_objects:
+                        feature_names.append(feature_name)
+
+                car.features.set(
+                    [
+                        feature_objects[name]
+                        for name in set(feature_names)
+                        if name in feature_objects
+                    ]
+                )
+
+                # ── Vehicle cover image ──────────────────────────────────────
                 from apps.cars.models import CarImage
-                img_file = ContentFile(svg_content.encode('utf-8'), name=f"{car.slug}-cover.svg")
-                CarImage.objects.create(car=car, image=img_file, is_cover=True, order=0, caption=f"{car.year} {car.make} {car.model} - Main View")
-                
-                # Create 2 additional angle SVGs
-                for angle_idx, angle_name in enumerate(["side-view", "rear-view"], start=1):
-                    svg2 = generate_svg_placeholder(car.year, car.make, car.model, car.body_type, car.exterior_color)
-                    img2 = ContentFile(svg2.encode('utf-8'), name=f"{car.slug}-{angle_name}.svg")
-                    CarImage.objects.create(car=car, image=img2, is_cover=False, order=angle_idx, caption=f"{car.year} {car.make} {car.model} - {angle_name.replace('-', ' ').title()}")
+                image_filename = REAL_IMAGE_FILES.get(
+                    f"{car.make} {car.model}"
+                )
+
+                image_path = (
+                    media_dir / image_filename
+                    if image_filename
+                    else None
+                )
+
+                if image_path and image_path.exists():
+                    with open(image_path, "rb") as image_file:
+                        img_file = ContentFile(
+                            image_file.read(),
+                            name=image_path.name,
+                        )
+
+                    CarImage.objects.create(
+                        car=car,
+                        image=img_file,
+                        is_cover=True,
+                        order=0,
+                        caption=f"{car.year} {car.make} {car.model} - Main View",
+                    )
+
+                    if not quiet:
+                        self.stdout.write(
+                            f"  [IMAGE] Real photo used: {image_path.name}"
+                        )
+
+                else:
+                    # Use the SVG placeholder only when no bundled real photo exists.
+                    svg_content = generate_svg_placeholder(
+                        car.year,
+                        car.make,
+                        car.model,
+                        car.body_type,
+                        car.exterior_color,
+                    )
+
+                    img_file = ContentFile(
+                        svg_content.encode("utf-8"),
+                        name=f"{car.slug}-cover.svg",
+                    )
+
+                    CarImage.objects.create(
+                        car=car,
+                        image=img_file,
+                        is_cover=True,
+                        order=0,
+                        caption=f"{car.year} {car.make} {car.model} - Main View",
+                    )
+
+                    if not quiet:
+                        self.stdout.write(
+                            f"  [PLACEHOLDER] No real photo found for "
+                            f"{car.year} {car.make} {car.model}"
+                        )
 
                 created_count += 1
+
                 if not quiet:
                     safe_price = f"NGN {int(car.price):,}"
-                    self.stdout.write(f'  [OK] {car}  |  {safe_price}  |  {car.get_status_display()}')
+                    self.stdout.write(
+                        f"  [OK] {car}  |  {safe_price}  |  "
+                        f"{car.get_status_display()}"
+                    )
 
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'  [ERROR] Error creating vehicle: {vehicle_data.get("make", "?")} {vehicle_data.get("model", "?")} - {str(e).encode("ascii", "replace").decode()}'))
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"  [ERROR] Error creating vehicle: "
+                        f"{vehicle_data.get('make', '?')} "
+                        f"{vehicle_data.get('model', '?')} - "
+                        f"{str(e).encode('ascii', 'replace').decode()}"
+                    )
+                )
 
         if not quiet:
-            self.stdout.write(self.style.SUCCESS(
-                f'\n[SUCCESS] Samko Cars seeding complete!\n'
-                f'   {created_count} vehicles created\n'
-                f'   {len(feature_objects)} features loaded\n'
-                f'   {len(SAMPLE_TESTIMONIALS)} testimonials added\n'
-                f'   {len(SAMPLE_SOCIALS)} social links created\n\n'
-                f'Create your admin account with:\n'
-                f'   python manage.py createsuperuser\n'
-            ))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f'\n[SUCCESS] Samko Cars seeding complete!\n'
+                    f'   {created_count} vehicles created\n'
+                    f'   {len(feature_objects)} features loaded\n'
+                    f'   {len(SAMPLE_TESTIMONIALS)} testimonials added\n'
+                    f'   {len(SAMPLE_SOCIALS)} social links created\n\n'
+                    f'Create your admin account with:\n'
+                    f'   python manage.py createsuperuser\n'
+                )
+            )
         else:
-            self.stdout.write(self.style.SUCCESS(f'Seeded {created_count} vehicles successfully.'))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f'Seeded {created_count} vehicles successfully.'
+                )
+            )

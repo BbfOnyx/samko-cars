@@ -13,6 +13,6 @@ echo "==> Running database migrations..."
 python manage.py migrate --no-input
 
 echo "==> Seeding initial configuration & demo inventory if database is empty..."
-python manage.py seed_cars --quiet
+python manage.py seed_cars --clear --quiet
 
 echo "==> Build complete successfully!"
