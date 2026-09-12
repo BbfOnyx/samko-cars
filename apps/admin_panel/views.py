@@ -1,15 +1,42 @@
 from decimal import Decimal
+from PIL import Image, UnidentifiedImageError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import JsonResponse
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Q
 from .decorators import staff_required
 from apps.cars.models import Car, CarImage, Feature
 from apps.enquiries.models import Enquiry
 from apps.purchases.models import PurchaseRequest
 from apps.core.models import SiteSetting, SocialMedia, Testimonial
+
+MAX_CAR_IMAGE_SIZE = 5 * 1024 * 1024
+ALLOWED_CAR_IMAGE_FORMATS = {'JPEG', 'PNG', 'WEBP'}
+
+
+def _validate_car_images(uploaded_images):
+    """Validate uploaded car photos without consuming their file contents."""
+    for image_file in uploaded_images:
+        if image_file.size > MAX_CAR_IMAGE_SIZE:
+            return f"'{image_file.name}' is too large. Each image must be 5 MB or smaller."
+
+        try:
+            image_file.seek(0)
+            with Image.open(image_file) as image:
+                image.verify()
+                image_format = image.format
+        except (UnidentifiedImageError, OSError, ValueError):
+            return f"'{image_file.name}' is not a valid JPEG, PNG, or WebP image."
+        finally:
+            image_file.seek(0)
+
+        if image_format not in ALLOWED_CAR_IMAGE_FORMATS:
+            return f"'{image_file.name}' is not a valid JPEG, PNG, or WebP image."
+
+    return None
 
 # ==================== AUTHENTICATION ====================
 
@@ -181,49 +208,58 @@ def car_create_view(request):
                 'action': 'Add'
             })
 
+        new_images = request.FILES.getlist('images')
+        image_error = _validate_car_images(new_images)
+        if image_error:
+            messages.error(request, image_error)
+            return render(request, 'admin_panel/car_form.html', {
+                'all_features': all_features,
+                'action': 'Add'
+            })
+
         try:
-            car = Car.objects.create(
-                make=make,
-                model=model,
-                year=int(year),
-                price=Decimal(price),
-                mileage=int(mileage) if mileage else 0,
-                condition=condition,
-                transmission=transmission,
-                fuel_type=fuel_type,
-                body_type=body_type,
-                engine=engine or "3.5L V6",
-                exterior_color=exterior_color,
-                interior_color=interior_color,
-                location=location,
-                status=status,
-                is_featured=is_featured,
-                is_active=is_active,
-                description=description,
-                vin=vin,
-            )
-
-            # Features
-            selected_features = request.POST.getlist('features')
-            if selected_features:
-                car.features.set(selected_features)
-
-            # Custom features input
-            custom_features_str = request.POST.get('custom_features', '').strip()
-            if custom_features_str:
-                for f_name in [x.strip() for x in custom_features_str.split(',') if x.strip()]:
-                    f_obj, _ = Feature.objects.get_or_create(name=f_name)
-                    car.features.add(f_obj)
-
-            # Image uploads
-            images = request.FILES.getlist('images')
-            for index, img_file in enumerate(images):
-                CarImage.objects.create(
-                    car=car,
-                    image=img_file,
-                    is_cover=(index == 0),
-                    order=index
+            with transaction.atomic():
+                car = Car.objects.create(
+                    make=make,
+                    model=model,
+                    year=int(year),
+                    price=Decimal(price),
+                    mileage=int(mileage) if mileage else 0,
+                    condition=condition,
+                    transmission=transmission,
+                    fuel_type=fuel_type,
+                    body_type=body_type,
+                    engine=engine or "3.5L V6",
+                    exterior_color=exterior_color,
+                    interior_color=interior_color,
+                    location=location,
+                    status=status,
+                    is_featured=is_featured,
+                    is_active=is_active,
+                    description=description,
+                    vin=vin,
                 )
+
+                # Features
+                selected_features = request.POST.getlist('features')
+                if selected_features:
+                    car.features.set(selected_features)
+
+                # Custom features input
+                custom_features_str = request.POST.get('custom_features', '').strip()
+                if custom_features_str:
+                    for f_name in [x.strip() for x in custom_features_str.split(',') if x.strip()]:
+                        f_obj, _ = Feature.objects.get_or_create(name=f_name)
+                        car.features.add(f_obj)
+
+                # Image uploads
+                for index, img_file in enumerate(new_images):
+                    CarImage.objects.create(
+                        car=car,
+                        image=img_file,
+                        is_cover=(index == 0),
+                        order=index
+                    )
 
             messages.success(request, f"Vehicle '{car.year} {car.make} {car.model}' added successfully!")
             return redirect('admin_panel:car_list')
@@ -275,6 +311,16 @@ def car_edit_view(request, pk):
                 'action': 'Edit'
             })
 
+        new_images = request.FILES.getlist('images')
+        image_error = _validate_car_images(new_images)
+        if image_error:
+            messages.error(request, image_error)
+            return render(request, 'admin_panel/car_form.html', {
+                'car': car,
+                'all_features': all_features,
+                'action': 'Edit'
+            })
+
         try:
             car.make = make
             car.model = model
@@ -308,7 +354,6 @@ def car_edit_view(request, pk):
                     car.features.add(f_obj)
 
             # New Image uploads
-            new_images = request.FILES.getlist('images')
             start_order = car.images.count()
             has_cover = car.images.filter(is_cover=True).exists()
             for index, img_file in enumerate(new_images):

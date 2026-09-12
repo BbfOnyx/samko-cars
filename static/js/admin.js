@@ -27,26 +27,42 @@ document.addEventListener('DOMContentLoaded', function () {
   const previewGrid = document.getElementById('image-preview-grid');
 
   if (imageInput && previewGrid) {
-    imageInput.addEventListener('change', function () {
-      const files = Array.from(this.files);
-      files.forEach((file, idx) => {
-        if (!file.type.startsWith('image/')) return;
+    const renderPreviews = () => {
+      previewGrid.replaceChildren();
+      Array.from(imageInput.files).forEach((file, idx) => {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) return;
         const reader = new FileReader();
         reader.onload = function (e) {
           const item = document.createElement('div');
           item.className = `image-preview-item${idx === 0 ? ' cover' : ''}`;
-          item.innerHTML = `
-            <img src="${e.target.result}" alt="Preview">
-            <div class="image-preview-actions">
-              <button type="button" class="img-action-btn" onclick="this.closest('.image-preview-item').remove()" title="Remove">✕</button>
-            </div>
-            ${idx === 0 ? '<div style="position:absolute;bottom:4px;left:4px;background:var(--color-primary);color:#1a1a1a;font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:4px;">COVER</div>' : ''}
-          `;
+          const image = document.createElement('img');
+          image.src = e.target.result;
+          image.alt = 'Preview';
+          const actions = document.createElement('div');
+          actions.className = 'image-preview-actions';
+          const removeButton = document.createElement('button');
+          removeButton.type = 'button';
+          removeButton.className = 'img-action-btn';
+          removeButton.title = 'Remove';
+          removeButton.textContent = '✕';
+          removeButton.addEventListener('click', () => {
+            const transfer = new DataTransfer();
+            Array.from(imageInput.files).forEach((selectedFile, fileIndex) => {
+              if (fileIndex !== idx) transfer.items.add(selectedFile);
+            });
+            imageInput.files = transfer.files;
+            renderPreviews();
+          });
+          actions.appendChild(removeButton);
+          item.append(image, actions);
           previewGrid.appendChild(item);
         };
         reader.readAsDataURL(file);
       });
-    });
+    };
+
+    imageInput.addEventListener('change', renderPreviews);
+    imageInput.renderPreviews = renderPreviews;
   }
 
   // ── Drag & Drop Upload Area ─────────────────────────
@@ -68,11 +84,11 @@ document.addEventListener('DOMContentLoaded', function () {
       uploadArea.classList.remove('dragover');
       const dt = e.dataTransfer;
       if (dt.files.length) {
-        // Create a new DataTransfer to combine existing + dropped
         const transferred = new DataTransfer();
+        Array.from(imageInput.files).forEach(f => transferred.items.add(f));
         Array.from(dt.files).forEach(f => transferred.items.add(f));
         imageInput.files = transferred.files;
-        imageInput.dispatchEvent(new Event('change'));
+        imageInput.dispatchEvent(new Event('change', { bubbles: true }));
       }
     });
   }

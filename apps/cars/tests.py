@@ -1,5 +1,8 @@
+from io import BytesIO
 from decimal import Decimal
+from PIL import Image
 from django.test import TestCase, Client
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.contrib.auth.models import User
 from apps.cars.models import Car, Feature, CarImage
@@ -60,6 +63,15 @@ class SamkoCarsFullTestSuite(TestCase):
         )
 
         self.client = Client()
+
+    def _uploaded_image(self, name, image_format='JPEG'):
+        buffer = BytesIO()
+        Image.new('RGB', (20, 20), color='navy').save(buffer, format=image_format)
+        return SimpleUploadedFile(
+            name,
+            buffer.getvalue(),
+            content_type=f'image/{image_format.lower()}',
+        )
 
     # 1. Public Pages
     def test_homepage_loads(self):
@@ -263,6 +275,82 @@ class SamkoCarsFullTestSuite(TestCase):
         public_resp = self.client.get(reverse('cars:detail', args=[self.car1.id]))
         self.assertContains(public_resp, "23,500,000")
         self.assertContains(public_resp, "SOLD")
+
+    def test_admin_edit_car_uploads_multiple_images_and_sets_first_cover(self):
+        self.client.force_login(self.admin)
+        edit_url = reverse('admin_panel:car_edit', args=[self.car1.id])
+        post_data = {
+            'make': 'Toyota', 'model': 'Camry XSE', 'year': '2021',
+            'price': '25000000', 'mileage': '32000', 'condition': 'foreign_used',
+            'transmission': 'automatic', 'fuel_type': 'petrol', 'body_type': 'sedan',
+            'engine': '2.5L 4-Cylinder', 'exterior_color': 'White',
+            'interior_color': 'Black Leather', 'location': 'Lekki, Lagos',
+            'status': 'available', 'is_active': 'on',
+        }
+        response = self.client.post(
+            edit_url,
+            {
+                **post_data,
+                'images': [
+                    self._uploaded_image('front.jpg'),
+                    self._uploaded_image('side.png', 'PNG'),
+                ],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        images = list(self.car1.images.order_by('order'))
+        self.assertEqual(len(images), 2)
+        self.assertTrue(images[0].is_cover)
+        self.assertFalse(images[1].is_cover)
+        self.assertTrue(images[0].image.name.startswith('cars/'))
+        self.assertTrue(images[0].image.url.startswith('/media/'))
+
+    def test_admin_image_cover_selection_and_deletion(self):
+        first = CarImage.objects.create(
+            car=self.car1, image=self._uploaded_image('first.jpg'), is_cover=True, order=0
+        )
+        second = CarImage.objects.create(
+            car=self.car1, image=self._uploaded_image('second.webp', 'WEBP'), order=1
+        )
+        self.client.force_login(self.admin)
+
+        cover_response = self.client.get(
+            reverse('admin_panel:car_image_set_cover', args=[second.id])
+        )
+        self.assertEqual(cover_response.status_code, 302)
+        first.refresh_from_db()
+        second.refresh_from_db()
+        self.assertFalse(first.is_cover)
+        self.assertTrue(second.is_cover)
+        self.assertEqual(self.car1.images.filter(is_cover=True).count(), 1)
+
+        delete_response = self.client.get(
+            reverse('admin_panel:car_image_delete', args=[first.id])
+        )
+        self.assertEqual(delete_response.status_code, 302)
+        self.assertFalse(CarImage.objects.filter(pk=first.id).exists())
+        self.assertTrue(CarImage.objects.filter(pk=second.id).exists())
+
+    def test_admin_edit_rejects_invalid_car_image(self):
+        self.client.force_login(self.admin)
+        edit_url = reverse('admin_panel:car_edit', args=[self.car1.id])
+        response = self.client.post(
+            edit_url,
+            {
+                'make': 'Toyota', 'model': 'Camry XSE', 'year': '2021',
+                'price': '25000000', 'mileage': '32000', 'condition': 'foreign_used',
+                'transmission': 'automatic', 'fuel_type': 'petrol', 'body_type': 'sedan',
+                'location': 'Lekki, Lagos', 'status': 'available',
+                'images': SimpleUploadedFile(
+                    'not-an-image.jpg', b'not an image', content_type='image/jpeg'
+                ),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'not a valid JPEG, PNG, or WebP image')
+        self.assertEqual(self.car1.images.count(), 0)
 
     def test_admin_delete_car(self):
         self.client.force_login(self.admin)
