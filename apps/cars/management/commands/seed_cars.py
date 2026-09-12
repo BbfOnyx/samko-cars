@@ -548,15 +548,19 @@ class Command(BaseCommand):
                 )
 
                 if image_path and image_path.exists():
-                    with open(image_path, "rb") as image_file:
-                        img_file = ContentFile(
-                            image_file.read(),
-                            name=image_path.name,
-                        )
+                    # The real photos are already bundled inside MEDIA_ROOT and
+                    # committed to Git. Assign the existing relative path directly
+                    # instead of uploading through FileField.storage. Otherwise
+                    # Django detects the existing file and adds a random suffix
+                    # (for example, _BJahvjZ.jpg), leaving Render with a DB URL
+                    # that points to a file that was never committed.
+                    relative_image_name = image_path.relative_to(
+                        settings.MEDIA_ROOT
+                    ).as_posix()
 
                     CarImage.objects.create(
                         car=car,
-                        image=img_file,
+                        image=relative_image_name,
                         is_cover=True,
                         order=0,
                         caption=f"{car.year} {car.make} {car.model} - Main View",
