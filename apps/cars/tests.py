@@ -1,10 +1,14 @@
 from io import BytesIO
 from decimal import Decimal
+from pathlib import Path
+from uuid import uuid4
+from django.conf import settings
 from PIL import Image
 from django.test import TestCase, Client
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.utils import timezone
 from apps.cars.models import Car, Feature, CarImage
 from apps.core.models import SiteSetting, SocialMedia, Testimonial
 from apps.enquiries.models import Enquiry
@@ -279,6 +283,8 @@ class SamkoCarsFullTestSuite(TestCase):
     def test_admin_edit_car_uploads_multiple_images_and_sets_first_cover(self):
         self.client.force_login(self.admin)
         edit_url = reverse('admin_panel:car_edit', args=[self.car1.id])
+        initial_image_count = self.car1.images.count()
+        front_name = f"front-regression-{uuid4().hex}.jpg"
         post_data = {
             'make': 'Toyota', 'model': 'Camry XSE', 'year': '2021',
             'price': '25000000', 'mileage': '32000', 'condition': 'foreign_used',
@@ -292,19 +298,72 @@ class SamkoCarsFullTestSuite(TestCase):
             {
                 **post_data,
                 'images': [
-                    self._uploaded_image('front.jpg'),
-                    self._uploaded_image('side.png', 'PNG'),
+                    self._uploaded_image(front_name),
+                    self._uploaded_image(f"side-regression-{uuid4().hex}.png", 'PNG'),
                 ],
             },
         )
 
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, edit_url)
         images = list(self.car1.images.order_by('order'))
-        self.assertEqual(len(images), 2)
+        self.assertEqual(len(images), initial_image_count + 2)
+        self.assertTrue(all(image.car_id == self.car1.id for image in images))
         self.assertTrue(images[0].is_cover)
         self.assertFalse(images[1].is_cover)
         self.assertTrue(images[0].image.name.startswith('cars/'))
         self.assertTrue(images[0].image.url.startswith('/media/'))
+        self.assertEqual(
+            images[0].image.name,
+            f"cars/{timezone.now():%Y/%m}/{front_name}",
+        )
+        self.assertTrue(Path(settings.MEDIA_ROOT, images[0].image.name).is_file())
+
+        edit_response = self.client.get(response.url)
+        self.assertEqual(edit_response.status_code, 200)
+        self.assertContains(edit_response, images[0].image.url)
+        self.assertContains(edit_response, images[1].image.url)
+        self.assertNotContains(
+            edit_response,
+            '<img src="/static/images/car-fallback.svg"',
+        )
+
+    def test_admin_edit_replaces_placeholder_cover_with_uploaded_image(self):
+        placeholder = CarImage.objects.create(
+            car=self.car1,
+            image=SimpleUploadedFile(
+                'placeholder.svg',
+                b'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"></svg>',
+                content_type='image/svg+xml',
+            ),
+            is_cover=True,
+            order=0,
+        )
+        self.client.force_login(self.admin)
+        edit_url = reverse('admin_panel:car_edit', args=[self.car1.id])
+        response = self.client.post(
+            edit_url,
+            {
+                'make': 'Toyota', 'model': 'Camry XSE', 'year': '2021',
+                'price': '25000000', 'mileage': '32000', 'condition': 'foreign_used',
+                'transmission': 'automatic', 'fuel_type': 'petrol', 'body_type': 'sedan',
+                'location': 'Lekki, Lagos', 'status': 'available',
+                'images': self._uploaded_image('toyota-real.jpg'),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        uploaded_image = self.car1.images.exclude(pk=placeholder.pk).get()
+        placeholder.refresh_from_db()
+        self.assertTrue(uploaded_image.is_cover)
+        self.assertFalse(placeholder.is_cover)
+        self.assertTrue(Path(settings.MEDIA_ROOT, uploaded_image.image.name).is_file())
+        edit_response = self.client.get(response.url)
+        self.assertContains(edit_response, uploaded_image.image.url)
+        self.assertNotContains(
+            edit_response,
+            '<img src="/static/images/car-fallback.svg"',
+        )
 
     def test_admin_image_cover_selection_and_deletion(self):
         first = CarImage.objects.create(

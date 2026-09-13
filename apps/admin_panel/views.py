@@ -322,47 +322,58 @@ def car_edit_view(request, pk):
             })
 
         try:
-            car.make = make
-            car.model = model
-            car.year = int(year)
-            car.price = Decimal(price)
-            car.mileage = int(mileage) if mileage else 0
-            car.condition = condition
-            car.transmission = transmission
-            car.fuel_type = fuel_type
-            car.body_type = body_type
-            car.engine = engine
-            car.exterior_color = exterior_color
-            car.interior_color = interior_color
-            car.location = location
-            car.status = status
-            car.is_featured = is_featured
-            car.is_active = is_active
-            car.description = description
-            car.vin = vin
-            car.save()
+            with transaction.atomic():
+                car.make = make
+                car.model = model
+                car.year = int(year)
+                car.price = Decimal(price)
+                car.mileage = int(mileage) if mileage else 0
+                car.condition = condition
+                car.transmission = transmission
+                car.fuel_type = fuel_type
+                car.body_type = body_type
+                car.engine = engine
+                car.exterior_color = exterior_color
+                car.interior_color = interior_color
+                car.location = location
+                car.status = status
+                car.is_featured = is_featured
+                car.is_active = is_active
+                car.description = description
+                car.vin = vin
+                car.save()
 
-            # Features
-            selected_features = request.POST.getlist('features')
-            car.features.set(selected_features)
+                # Features
+                selected_features = request.POST.getlist('features')
+                car.features.set(selected_features)
 
-            # Custom features input
-            custom_features_str = request.POST.get('custom_features', '').strip()
-            if custom_features_str:
-                for f_name in [x.strip() for x in custom_features_str.split(',') if x.strip()]:
-                    f_obj, _ = Feature.objects.get_or_create(name=f_name)
-                    car.features.add(f_obj)
+                # Custom features input
+                custom_features_str = request.POST.get('custom_features', '').strip()
+                if custom_features_str:
+                    for f_name in [x.strip() for x in custom_features_str.split(',') if x.strip()]:
+                        f_obj, _ = Feature.objects.get_or_create(name=f_name)
+                        car.features.add(f_obj)
 
-            # New Image uploads
-            start_order = car.images.count()
-            has_cover = car.images.filter(is_cover=True).exists()
-            for index, img_file in enumerate(new_images):
-                CarImage.objects.create(
-                    car=car,
-                    image=img_file,
-                    is_cover=(not has_cover and index == 0),
-                    order=start_order + index
+                # New Image uploads
+                start_order = car.images.count()
+                cover_image = car.images.filter(is_cover=True).first()
+                replace_placeholder_cover = (
+                    cover_image is not None
+                    and cover_image.image.name.lower().endswith('.svg')
                 )
+                if replace_placeholder_cover:
+                    car.images.filter(is_cover=True).update(is_cover=False)
+
+                for index, img_file in enumerate(new_images):
+                    CarImage.objects.create(
+                        car=car,
+                        image=img_file,
+                        is_cover=(
+                            (cover_image is None or replace_placeholder_cover)
+                            and index == 0
+                        ),
+                        order=start_order + index
+                    )
 
             messages.success(request, f"Vehicle '{car}' updated successfully!")
             return redirect('admin_panel:car_edit', pk=car.pk)
