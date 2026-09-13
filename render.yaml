@@ -25,7 +25,7 @@ services:
       - key: ALLOWED_HOSTS
         value: ".onrender.com,localhost,127.0.0.1"
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://samko-cars-web.onrender.com"
+        value: "https://samko-cars.onrender.com"
       - key: SERVE_MEDIA
         value: "True"
       - key: AWS_STORAGE_BUCKET_NAME
