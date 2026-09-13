@@ -153,10 +153,9 @@ WHITENOISE_MANIFEST_STRICT = False
 # Media files (User uploaded car pictures)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-# Serve local media when no object-storage backend is configured. Production
-# should set up S3-compatible storage for durability; this default also keeps
-# committed inventory photos reachable when Render has not synced SERVE_MEDIA.
-SERVE_MEDIA = os.getenv('SERVE_MEDIA', 'True').lower() in ('true', '1', 't')
+# Serve media through Django when using local storage. With S3 configured,
+# FileField URLs point to the object store and this route is harmless.
+SERVE_MEDIA = True
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
