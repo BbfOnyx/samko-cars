@@ -118,15 +118,36 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# WhiteNoise storage
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage" if not DEBUG else "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
-}
+# Static and media storage
+S3_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', '').strip()
+if S3_BUCKET_NAME:
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "bucket_name": S3_BUCKET_NAME,
+                "region_name": os.getenv('AWS_S3_REGION_NAME', '').strip() or None,
+                "endpoint_url": os.getenv('AWS_S3_ENDPOINT_URL', '').strip() or None,
+                "custom_domain": os.getenv('AWS_S3_CUSTOM_DOMAIN', '').strip() or None,
+                "location": os.getenv('AWS_LOCATION', 'media').strip('/'),
+                "default_acl": None,
+                "querystring_auth": False,
+                "file_overwrite": False,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage" if not DEBUG else "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage" if not DEBUG else "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
 WHITENOISE_MANIFEST_STRICT = False
 
 # Media files (User uploaded car pictures)

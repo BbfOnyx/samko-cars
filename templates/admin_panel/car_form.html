@@ -168,8 +168,9 @@
           <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.75rem">Existing Photos — First image with ⭐ is the cover photo:</p>
           <div class="image-preview-grid">
             {% for img in car.images.all %}
+            {% if img.is_vehicle_photo %}
             <div class="image-preview-item {% if img.is_cover %}cover{% endif %}">
-              <img src="{{ img.image.url }}" alt="Car photo {{ forloop.counter }}" onerror="this.onerror=null;this.src='/static/images/car-fallback.svg'">
+              <img src="{{ img.image.url }}" alt="Car photo {{ forloop.counter }}">
               <div class="image-preview-actions">
                 {% if not img.is_cover %}
                 <a href="{% url 'admin_panel:car_image_set_cover' img.id %}" class="img-action-btn set-cover" title="Set as Cover">⭐</a>
@@ -183,6 +184,7 @@
               <div style="position:absolute;bottom:4px;left:4px;background:var(--color-primary);color:#1a1a1a;font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:4px">COVER</div>
               {% endif %}
             </div>
+            {% endif %}
             {% endfor %}
           </div>
         </div>

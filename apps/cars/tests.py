@@ -6,9 +6,11 @@ from django.conf import settings
 from PIL import Image
 from django.test import TestCase, Client
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.files.storage import default_storage
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.utils import timezone
+from unittest.mock import patch
 from apps.cars.models import Car, Feature, CarImage
 from apps.core.models import SiteSetting, SocialMedia, Testimonial
 from apps.enquiries.models import Enquiry
@@ -244,6 +246,57 @@ class SamkoCarsFullTestSuite(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Car.objects.filter(make='Lexus', model='RX 350').exists())
 
+    def test_admin_create_car_persists_multiple_uploaded_images(self):
+        self.client.force_login(self.admin)
+        create_url = reverse('admin_panel:car_add')
+        first = self._uploaded_image(f"new-front-{uuid4().hex}.jpg")
+        second = self._uploaded_image(f"new-side-{uuid4().hex}.jpg")
+        post_data = {
+            'make': 'Honda', 'model': 'Accord Sport', 'year': '2022',
+            'price': '30000000', 'mileage': '21000', 'condition': 'foreign_used',
+            'transmission': 'automatic', 'fuel_type': 'petrol', 'body_type': 'sedan',
+            'location': 'Ikeja, Lagos', 'status': 'available', 'is_active': 'on',
+        }
+        captured_files = {}
+
+        from apps.admin_panel import views as admin_views
+        original_validator = admin_views._validate_car_images
+
+        def capture_files(uploaded_files):
+            captured_files['files'] = list(uploaded_files)
+            return original_validator(uploaded_files)
+
+        with patch('apps.admin_panel.views._validate_car_images', side_effect=capture_files):
+            response = self.client.post(
+                create_url,
+                {**post_data, 'images': [first, second]},
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            {uploaded.name for uploaded in captured_files['files']},
+            {first.name, second.name},
+        )
+        car = Car.objects.get(make='Honda', model='Accord Sport')
+        images = list(car.images.order_by('order'))
+        self.assertEqual(len(images), 2)
+        self.assertEqual([image.car_id for image in images], [car.id, car.id])
+        self.assertTrue(images[0].is_cover)
+
+        for image in images:
+            self.assertTrue(image.image.name)
+            self.assertTrue(default_storage.exists(image.image.name))
+            with default_storage.open(image.image.name, 'rb') as stored_file:
+                with Image.open(stored_file) as stored_image:
+                    stored_image.verify()
+            self.assertTrue(image.image.url.startswith('/media/'))
+
+        edit_response = self.client.get(reverse('admin_panel:car_edit', args=[car.id]))
+        public_response = self.client.get(reverse('cars:detail', args=[car.id]))
+        for image in images:
+            self.assertContains(edit_response, image.image.url)
+            self.assertContains(public_response, image.image.url)
+
     def test_admin_edit_car_price_and_status(self):
         self.client.force_login(self.admin)
         edit_url = reverse('admin_panel:car_edit', args=[self.car1.id])
@@ -317,7 +370,10 @@ class SamkoCarsFullTestSuite(TestCase):
             images[0].image.name,
             f"cars/{timezone.now():%Y/%m}/{front_name}",
         )
-        self.assertTrue(Path(settings.MEDIA_ROOT, images[0].image.name).is_file())
+        self.assertTrue(default_storage.exists(images[0].image.name))
+        with default_storage.open(images[0].image.name, 'rb') as stored_file:
+            with Image.open(stored_file) as stored_image:
+                stored_image.verify()
 
         edit_response = self.client.get(response.url)
         self.assertEqual(edit_response.status_code, 200)
@@ -327,6 +383,9 @@ class SamkoCarsFullTestSuite(TestCase):
             edit_response,
             '<img src="/static/images/car-fallback.svg"',
         )
+        public_response = self.client.get(reverse('cars:detail', args=[self.car1.id]))
+        self.assertContains(public_response, images[0].image.url)
+        self.assertContains(public_response, images[1].image.url)
 
     def test_admin_edit_replaces_placeholder_cover_with_uploaded_image(self):
         placeholder = CarImage.objects.create(

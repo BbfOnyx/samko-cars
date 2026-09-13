@@ -104,7 +104,7 @@ When Render builds your app, `build.sh` automatically:
 3. Applies database migrations with `python manage.py migrate --no-input`
 4. Automatically populates initial site settings and demo vehicles if database is empty via `python manage.py seed_cars --quiet`
 
-The bundled demo vehicle images are committed under `media/` and Render is configured with `SERVE_MEDIA=True` so they are available after deployment. Render's local filesystem is ephemeral: images uploaded through the admin dashboard are not durable across redeploys. Configure S3-compatible object storage and a custom storage backend before relying on production uploads.
+The bundled demo vehicle images are committed under `media/`. Admin uploads use local `FileSystemStorage` during development. Production uploads require an S3-compatible bucket because Render's web-service filesystem is ephemeral. Set `AWS_STORAGE_BUCKET_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_S3_REGION_NAME`; set `AWS_S3_ENDPOINT_URL` for providers such as Cloudflare R2 or Backblaze B2, and optionally set `AWS_S3_CUSTOM_DOMAIN`. The application switches to `django-storages` automatically when `AWS_STORAGE_BUCKET_NAME` is present. `AWS_LOCATION` defaults to `media`.
 
 ### Step 8: Create Administrator Account
 In your Render Dashboard:

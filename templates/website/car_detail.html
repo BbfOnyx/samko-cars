@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static humanize %}
+{% load humanize %}
 
 {% block title %}{{ car.year }} {{ car.make }} {{ car.model }} — {{ car.formatted_price }} | Samko Cars{% endblock %}
 {% block meta_description %}{{ car.year }} {{ car.make }} {{ car.model }} for sale at {{ car.formatted_price }}. {{ car.mileage|intcomma }}km, {{ car.get_transmission_display }}, {{ car.get_condition_display }}. Located in {{ car.location }}.{% endblock %}
@@ -33,9 +33,9 @@
           <div class="gallery-main">
             {% with car.get_cover_image as cover %}
             {% if cover and cover.image.name %}
-              <img id="gallery-main-img" src="{{ cover.image.url }}" alt="{{ car.year }} {{ car.make }} {{ car.model }} - Main Photo" onerror="this.onerror=null;this.src='/static/images/car-fallback.svg'">
+              <img id="gallery-main-img" src="{{ cover.image.url }}" alt="{{ car.year }} {{ car.make }} {{ car.model }} - Main Photo">
             {% else %}
-              <img id="gallery-main-img" src="{% static 'images/car-fallback.svg' %}" alt="{{ car.year }} {{ car.make }} {{ car.model }} - Image unavailable">
+              <div class="gallery-main-empty">No photo available</div>
             {% endif %}
             {% endwith %}
           </div>
@@ -49,7 +49,7 @@
                     role="listitem"
                     aria-label="View photo {{ forloop.counter }}"
                     type="button">
-              <img src="{{ img.image.url }}" alt="Thumbnail {{ forloop.counter }}" loading="lazy" onerror="this.onerror=null;this.src='/static/images/car-fallback.svg'">
+              <img src="{{ img.image.url }}" alt="Thumbnail {{ forloop.counter }}" loading="lazy">
             </button>
             {% endfor %}
           </div>

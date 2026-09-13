@@ -185,7 +185,7 @@ def car_detail_view(request, pk=None, slug=None):
 
     context = {
         'car': car,
-        'images': car.images.all(),
+        'images': car.images.exclude(image__iendswith='.svg'),
         'features': car.features.all(),
         'related_cars': related_cars,
         'whatsapp_link': whatsapp_link,

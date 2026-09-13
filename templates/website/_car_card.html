@@ -1,12 +1,12 @@
-{% load static humanize %}
+{% load humanize %}
 <article class="car-card" aria-label="{{ car.year }} {{ car.make }} {{ car.model }}">
   <!-- Car Image -->
   <div class="car-card-image">
     {% with car.get_cover_image as cover %}
     {% if cover and cover.image.name %}
-      <img src="{{ cover.image.url }}" alt="{{ car.year }} {{ car.make }} {{ car.model }}" loading="lazy" onerror="this.onerror=null;this.src='/static/images/car-fallback.svg'">
+      <img src="{{ cover.image.url }}" alt="{{ car.year }} {{ car.make }} {{ car.model }}" loading="lazy">
     {% else %}
-      <img src="{% static 'images/car-fallback.svg' %}" alt="{{ car.year }} {{ car.make }} {{ car.model }}" loading="lazy">
+      <div class="car-card-image-empty">No photo</div>
     {% endif %}
     {% endwith %}
 

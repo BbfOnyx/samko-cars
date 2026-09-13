@@ -7,7 +7,6 @@ import random
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
-from django.core.files.base import ContentFile
 from apps.cars.models import Car, Feature
 from apps.core.models import SiteSetting, SocialMedia, Testimonial
 
@@ -306,109 +305,6 @@ SAMPLE_SOCIALS = [
 ]
 
 
-def generate_svg_placeholder(year, make, model, body_type, color):
-    """
-    Generate a styled SVG placeholder image for a vehicle.
-    Each car gets a unique look based on its attributes.
-    """
-    color_map = {
-        "black": "#1a1a1a", "white": "#f5f5f5", "silver": "#c0c0c0", "grey": "#808080",
-        "gray": "#808080", "blue": "#1e3a5f", "red": "#8b0000", "green": "#1a4a1a",
-        "beige": "#c8b99a", "brown": "#5c3d2e", "orange": "#cc5500", "yellow": "#b8a000",
-        "gold": "#b8860b", "pearl": "#f2f0e8", "graphite": "#3a3a3a",
-    }
-    
-    bg_color = "#2d3748"
-    for key, val in color_map.items():
-        if key in color.lower():
-            bg_color = val
-            break
-
-    text_lines = [make, model, str(year)]
-    
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:{bg_color};stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#0a0a0a;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="carGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.35" />
-      <stop offset="100%" style="stop-color:#000000;stop-opacity:0.1" />
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  
-  <!-- Background -->
-  <rect width="800" height="500" fill="url(#bg)"/>
-  
-  <!-- Grid pattern -->
-  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.3" opacity="0.1"/>
-  </pattern>
-  <rect width="800" height="500" fill="url(#grid)"/>
-  
-  <!-- Car silhouette - simplified SUV/Sedan shape -->
-  <g transform="translate(150, 240)">
-    <!-- Shadow -->
-    <ellipse cx="250" cy="175" rx="240" ry="18" fill="black" opacity="0.5"/>
-    
-    <!-- Body -->
-    <rect x="30" y="100" width="440" height="80" rx="8" fill="{bg_color}" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
-    <rect x="0" y="148" width="500" height="32" rx="6" fill="{bg_color}" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-    
-    <!-- Roof -->
-    <path d="M 90 100 C 110 55, 160 40, 250 38 C 330 36, 380 50, 420 100 Z" 
-          fill="{bg_color}" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
-    
-    <!-- Windows -->
-    <path d="M 115 98 C 125 65, 155 52, 240 50 L 240 96 Z" 
-          fill="rgba(120,200,255,0.5)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
-    <path d="M 245 50 L 370 55 C 400 65, 415 82, 415 98 L 245 96 Z" 
-          fill="rgba(120,200,255,0.5)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
-    
-    <!-- A/B pillars -->
-    <line x1="240" y1="50" x2="243" y2="98" stroke="rgba(255,255,255,0.6)" stroke-width="3"/>
-    
-    <!-- Wheels -->
-    <circle cx="100" cy="175" r="42" fill="#1a1a1a" stroke="#555" stroke-width="3"/>
-    <circle cx="100" cy="175" r="28" fill="#333" stroke="#888" stroke-width="2"/>
-    <circle cx="100" cy="175" r="12" fill="#aaa" stroke="#ccc" stroke-width="1"/>
-    
-    <circle cx="400" cy="175" r="42" fill="#1a1a1a" stroke="#555" stroke-width="3"/>
-    <circle cx="400" cy="175" r="28" fill="#333" stroke="#888" stroke-width="2"/>
-    <circle cx="400" cy="175" r="12" fill="#aaa" stroke="#ccc" stroke-width="1"/>
-    
-    <!-- Headlights -->
-    <rect x="455" y="118" width="38" height="14" rx="4" fill="rgba(255,240,180,0.9)" stroke="rgba(255,255,150,0.8)" stroke-width="1" filter="url(#glow)"/>
-    <!-- Tail lights -->
-    <rect x="8" y="118" width="30" height="14" rx="4" fill="rgba(255,60,60,0.9)" stroke="rgba(255,100,100,0.8)" stroke-width="1"/>
-    
-    <!-- Highlight -->
-    <path d="M 80 85 C 180 60, 330 58, 420 80" stroke="rgba(255,255,255,0.5)" stroke-width="2" fill="none"/>
-  </g>
-  
-  <!-- Brand logo area -->
-  <circle cx="400" cy="60" r="32" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
-  <text x="400" y="68" text-anchor="middle" fill="white" font-family="Georgia, serif" font-size="20" font-weight="bold" opacity="0.7">S</text>
-  
-  <!-- Vehicle info text -->
-  <text x="400" y="420" text-anchor="middle" fill="rgba(255,255,255,0.95)" font-family="'Segoe UI', Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="2">
-    {make.upper()}
-  </text>
-  <text x="400" y="450" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="'Segoe UI', Arial, sans-serif" font-size="18" font-weight="400" letter-spacing="1">
-    {model} &bull; {year}
-  </text>
-  
-  <!-- Samko Cars watermark -->
-  <text x="20" y="485" fill="rgba(255,255,255,0.3)" font-family="'Segoe UI', Arial, sans-serif" font-size="12">SAMKO CARS</text>
-</svg>"""
-    return svg
-
-
 class Command(BaseCommand):
     help = 'Seed Samko Cars database with realistic demo vehicle inventory, features, testimonials, and sample settings.'
 
@@ -598,34 +494,11 @@ class Command(BaseCommand):
                             f"  [IMAGE] Real photo used: {image_path.name}"
                         )
 
-                else:
-                    # Use the SVG placeholder only when no bundled real photo exists.
-                    svg_content = generate_svg_placeholder(
-                        car.year,
-                        car.make,
-                        car.model,
-                        car.body_type,
-                        car.exterior_color,
+                elif not quiet:
+                    self.stdout.write(
+                        f"  [NO IMAGE] No bundled real photo found for "
+                        f"{car.year} {car.make} {car.model}"
                     )
-
-                    img_file = ContentFile(
-                        svg_content.encode("utf-8"),
-                        name=f"{car.slug}-cover.svg",
-                    )
-
-                    CarImage.objects.create(
-                        car=car,
-                        image=img_file,
-                        is_cover=True,
-                        order=0,
-                        caption=f"{car.year} {car.make} {car.model} - Main View",
-                    )
-
-                    if not quiet:
-                        self.stdout.write(
-                            f"  [PLACEHOLDER] No real photo found for "
-                            f"{car.year} {car.make} {car.model}"
-                        )
 
                 created_count += 1
 

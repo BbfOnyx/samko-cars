@@ -130,10 +130,11 @@ class Car(models.Model):
             return f"{self.mileage} km"
 
     def get_cover_image(self):
-        """Returns cover photo, or first photo, or placeholder"""
-        cover = self.images.filter(is_cover=True).first()
+        """Returns a real cover photo, or the first real photo."""
+        real_images = self.images.exclude(image__iendswith='.svg')
+        cover = real_images.filter(is_cover=True).first()
         if not cover:
-            cover = self.images.first()
+            cover = real_images.first()
         return cover
 
     def get_whatsapp_url(self, request=None):
@@ -166,3 +167,7 @@ class CarImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.car} ({'Cover' if self.is_cover else 'Gallery'})"
+
+    @property
+    def is_vehicle_photo(self):
+        return bool(self.image.name) and not self.image.name.lower().endswith('.svg')
