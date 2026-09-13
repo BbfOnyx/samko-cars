@@ -2,9 +2,9 @@
 URL configuration for Samko Cars project.
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
-from django.conf.urls.static import static
+from django.views.static import serve
 
 urlpatterns = [
     # Custom Staff & Dealership Executive Dashboard
@@ -26,7 +26,14 @@ urlpatterns = [
     path('', include('apps.core.urls', namespace='core')),
 ]
 
-# Serve committed/local media through Django only when explicitly enabled.
-# User uploads need object storage for durable production persistence.
-if settings.SERVE_MEDIA:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Django's static() helper is deliberately DEBUG-only. Use an explicit route
+# for local media so committed inventory files and local-storage uploads work
+# in production when S3-compatible storage is not configured.
+if not settings.S3_BUCKET_NAME:
+    urlpatterns += [
+        re_path(
+            r'^media/(?P<path>.*)$',
+            serve,
+            {'document_root': settings.MEDIA_ROOT},
+        ),
+    ]
