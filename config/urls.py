@@ -26,14 +26,13 @@ urlpatterns = [
     path('', include('apps.core.urls', namespace='core')),
 ]
 
-# Django's static() helper is deliberately DEBUG-only. Use an explicit route
-# for local media so committed inventory files and local-storage uploads work
-# in production when S3-compatible storage is not configured.
-if not settings.S3_BUCKET_NAME:
-    urlpatterns += [
-        re_path(
-            r'^media/(?P<path>.*)$',
-            serve,
-            {'document_root': settings.MEDIA_ROOT},
-        ),
-    ]
+# Django's static() helper is deliberately DEBUG-only. Register an explicit
+# local-media route so committed inventory files remain reachable in production.
+# When S3 is configured, ImageField.url points to S3 and this route is unused.
+urlpatterns += [
+    re_path(
+        r'^media/(?P<path>.*)$',
+        serve,
+        {'document_root': settings.MEDIA_ROOT},
+    ),
+]
