@@ -218,6 +218,30 @@ class SamkoCarsFullTestSuite(TestCase):
         self.assertEqual(response_auth.status_code, 200)
         self.assertContains(response_auth, "Dashboard")
 
+    def test_admin_enquiries_and_settings_pages_render(self):
+        Enquiry.objects.create(
+            name='Ada Test',
+            email='ada@example.com',
+            phone='+2348012345678',
+            car=self.car1,
+            message='Please contact me about this vehicle.',
+        )
+        self.client.force_login(self.admin)
+
+        enquiries_response = self.client.get(reverse('admin_panel:enquiries'))
+        self.assertEqual(enquiries_response.status_code, 200)
+        self.assertContains(
+            enquiries_response,
+            reverse(
+                'admin_panel:enquiry_update_status',
+                args=[Enquiry.objects.get(name='Ada Test').id, 'contacted'],
+            ),
+        )
+
+        settings_response = self.client.get(reverse('admin_panel:settings'))
+        self.assertEqual(settings_response.status_code, 200)
+        self.assertContains(settings_response, 'Dealership Settings &amp; Homepage Content')
+
     # 6. Admin Car CRUD
     def test_admin_create_car(self):
         self.client.force_login(self.admin)

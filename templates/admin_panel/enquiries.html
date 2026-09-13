@@ -75,13 +75,13 @@
           <td>
             <div style="display:flex;flex-direction:column;gap:4px">
               {% if enquiry.status != 'contacted' %}
-              <a href="{% url 'admin_panel:enquiry_status' enquiry.id 'contacted' %}" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Mark Contacted</a>
+              <a href="{% url 'admin_panel:enquiry_update_status' enquiry.id 'contacted' %}" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Mark Contacted</a>
               {% endif %}
               {% if enquiry.status != 'resolved' %}
-              <a href="{% url 'admin_panel:enquiry_status' enquiry.id 'resolved' %}" class="btn btn-sm btn-success" style="font-size:0.75rem;padding:3px 8px">Mark Resolved</a>
+              <a href="{% url 'admin_panel:enquiry_update_status' enquiry.id 'resolved' %}" class="btn btn-sm btn-success" style="font-size:0.75rem;padding:3px 8px">Mark Resolved</a>
               {% endif %}
               {% if enquiry.status != 'new' %}
-              <a href="{% url 'admin_panel:enquiry_status' enquiry.id 'new' %}" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Mark New</a>
+              <a href="{% url 'admin_panel:enquiry_update_status' enquiry.id 'new' %}" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Mark New</a>
               {% endif %}
               <a href="{% url 'admin_panel:enquiry_delete' enquiry.id %}" onclick="return confirm('Delete this enquiry?')" class="btn btn-sm btn-danger" style="font-size:0.75rem;padding:3px 8px">Delete</a>
             </div>
