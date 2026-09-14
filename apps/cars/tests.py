@@ -242,6 +242,28 @@ class SamkoCarsFullTestSuite(TestCase):
         self.assertEqual(settings_response.status_code, 200)
         self.assertContains(settings_response, 'Dealership Settings &amp; Homepage Content')
 
+    def test_admin_purchases_page_renders_status_links(self):
+        purchase = PurchaseRequest.objects.create(
+            car=self.car1,
+            customer_name='Ada Buyer',
+            customer_email='buyer@example.com',
+            customer_phone='+2348012345678',
+            price_at_request=self.car1.price,
+            message='I would like to arrange an inspection.',
+        )
+        self.client.force_login(self.admin)
+
+        response = self.client.get(reverse('admin_panel:purchases') + '?status=new')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            reverse(
+                'admin_panel:purchase_update_status',
+                args=[purchase.id, 'contacted'],
+            ),
+        )
+
     # 6. Admin Car CRUD
     def test_admin_create_car(self):
         self.client.force_login(self.admin)

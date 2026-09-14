@@ -84,16 +84,16 @@
           <td>
             <div style="display:flex;flex-direction:column;gap:4px">
               {% if pr.status != 'contacted' %}
-              <a href="{% url 'admin_panel:purchase_status' pr.id 'contacted' %}" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Mark Contacted</a>
+              <a href="{% url 'admin_panel:purchase_update_status' pr.id 'contacted' %}" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Mark Contacted</a>
               {% endif %}
               {% if pr.status != 'processing' %}
-              <a href="{% url 'admin_panel:purchase_status' pr.id 'processing' %}" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Mark Processing</a>
+              <a href="{% url 'admin_panel:purchase_update_status' pr.id 'processing' %}" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Mark Processing</a>
               {% endif %}
               {% if pr.status != 'completed' %}
-              <a href="{% url 'admin_panel:purchase_status' pr.id 'completed' %}" class="btn btn-sm btn-success" style="font-size:0.75rem;padding:3px 8px">Mark Completed</a>
+              <a href="{% url 'admin_panel:purchase_update_status' pr.id 'completed' %}" class="btn btn-sm btn-success" style="font-size:0.75rem;padding:3px 8px">Mark Completed</a>
               {% endif %}
               {% if pr.status != 'cancelled' %}
-              <a href="{% url 'admin_panel:purchase_status' pr.id 'cancelled' %}" class="btn btn-sm btn-danger" style="font-size:0.75rem;padding:3px 8px">Cancel Order</a>
+              <a href="{% url 'admin_panel:purchase_update_status' pr.id 'cancelled' %}" class="btn btn-sm btn-danger" style="font-size:0.75rem;padding:3px 8px">Cancel Order</a>
               {% endif %}
             </div>
           </td>
